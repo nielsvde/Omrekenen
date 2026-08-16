@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Correctie calculator</title>
+  <title>Product correctie calculator</title>
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/png" href="icon.png">
   <link rel="apple-touch-icon" href="icon.png">
@@ -24,18 +24,28 @@
       background-color: var(--bg);
       color: var(--text);
       margin: 0;
-      padding: 20px;
+      padding: 12px;
       display: flex;
       justify-content: center;
     }
     .card {
       background: var(--card-bg);
-      padding: 24px;
+      padding: 20px 16px;
       border-radius: 16px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.08);
       width: 100%;
-      max-width: 400px;
+      max-width: 480px;
+      box-sizing: border-box;
       text-align: center;
+    }
+
+    @media (min-width: 480px) {
+      body {
+        padding: 20px;
+      }
+      .card {
+        padding: 24px;
+      }
     }
     
     /* Header layout met logo naast titel */
@@ -47,8 +57,8 @@
       text-align: left;
     }
     .logo {
-      width: 50px;
-      height: 50px;
+      width: 48px;
+      height: 48px;
       border-radius: 12px;
       object-fit: cover;
       flex-shrink: 0;
@@ -127,7 +137,7 @@
     }
     .tab-btn {
       flex: 1;
-      padding: 10px 14px;
+      padding: 10px 12px;
       border: 1px solid var(--border-blue);
       border-bottom: none;
       background: #e1eeef;
@@ -149,7 +159,7 @@
       background: var(--card-blue-bg);
       border: 1px solid var(--border-blue);
       border-radius: 0 0 12px 12px;
-      padding: 18px;
+      padding: 16px 14px;
       text-align: left;
       box-shadow: inset 0 1px 3px rgba(0,0,0,0.02);
     }
@@ -163,13 +173,16 @@
     .result-row {
       display: flex;
       justify-content: space-between;
+      gap: 8px;
       margin-bottom: 10px;
+      font-size: 0.92rem;
     }
     .result-row:last-child {
       margin-bottom: 0;
     }
     .result-value {
       font-weight: bold;
+      white-space: nowrap;
     }
 
     /* Berekening stappen styling */
@@ -326,7 +339,7 @@
           <span id="waterToAdd" class="result-value">0 kg</span>
         </div>
         <div class="result-row" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border-blue);">
-          <span>Totale grootte batch:</span>
+          <span>Totale grootte batch na correctie:</span>
           <span id="totalBatch" class="result-value">0 kg</span>
         </div>
       </div>
@@ -432,7 +445,7 @@
           <div class="calc-step"><strong>Stap 3: Vet uit toevoeging</strong><br>
           ${Math.round(addAmount)} kg × ${creamFat.toFixed(2)}% = ${addFatKg.toFixed(2)} kg vet</div>
           <div class="calc-step"><strong>Stap 4: Totale batch & vet</strong><br>
-          Totale batch: ${batchSize} kg + ${Math.round(addAmount)} kg = <strong>${Math.round(totalBatchVal)} kg</strong><br>
+          Totale batch na correctie: ${batchSize} kg + ${Math.round(addAmount)} kg = <strong>${Math.round(totalBatchVal)} kg</strong><br>
           Totaal vet: ${currentFatKg.toFixed(2)} kg + ${addFatKg.toFixed(2)} kg = <strong>${Math.round(totalFatKgVal)} kg vet</strong></div>
         `;
       } else {
@@ -455,7 +468,7 @@
         <div class="calc-step"><strong>Stap 2: Water toevoegen voor verdunning</strong><br>
         ( ${currentFat.toFixed(2)}% / ${targetFat.toFixed(2)}% - 1 ) × ${batchSize} kg = <strong>${Math.round(waterToAdd)} kg water</strong></div>
         <div class="calc-step"><strong>Stap 3: Totale batch & vet</strong><br>
-        Totale batch: ${batchSize} kg + ${Math.round(waterToAdd)} kg = <strong>${Math.round(totalBatchVal)} kg</strong><br>
+        Totale batch na correctie: ${batchSize} kg + ${Math.round(waterToAdd)} kg = <strong>${Math.round(totalBatchVal)} kg</strong><br>
         Totaal vet blijft ongewijzigd: <strong>${Math.round(currentFatKg)} kg vet</strong></div>
       `;
     } else {
