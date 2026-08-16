@@ -1,48 +1,35 @@
-const CACHE_NAME = 'room-calc-dynamic';
+const CACHE_NAME = 'room-calc-v1';
 
-const ASSETS = [
-  './',
-  './index.html',
-  './manifest.json',
-  './icon.png'
-];
-
-// Bij installatie: sla de basisbestanden op
+// 1. Installatie
 self.addEventListener('install', (event) => {
-  self.skipWaiting(); // Zorg dat een nieuwe SW direct actief wordt
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
-  );
+  self.skipWaiting();
 });
 
+// 2. Activatie
 self.addEventListener('activate', (event) => {
   event.waitUntil(self.clients.claim());
 });
 
-// Slimme afhandeling: Stale-While-Revalidate
+// 3. Slimme afhandeling per bestandstype
 self.addEventListener('fetch', (event) => {
-  // Alleen GET-verzoeken verwerken
   if (event.request.method !== 'GET') return;
 
   event.respondWith(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.match(event.request).then((cachedResponse) => {
-        // Haal altijd de nieuwste versie op van het netwerk op de achtergrond
-        const fetchPromise = fetch(event.request)
-          .then((networkResponse) => {
-            // Als de respons geldig is, werk de cache bij voor de volgende keer
-            if (networkResponse && networkResponse.status === 200) {
-              cache.put(event.request, networkResponse.clone());
-            }
-            return networkResponse;
-          })
-          .catch(() => {
-            // Offline? Geen probleem, we gebruiken de cache
+    // Probeer ALTIJD eerst het netwerk (GitHub) op te halen
+    fetch(event.request)
+      .then((networkResponse) => {
+        // Gelukt? Sla de nieuwste versie direct op in de cache
+        if (networkResponse && networkResponse.status === 200) {
+          const responseToCache = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseToCache);
           });
-
-        // Geef direct de gecachete versie als die er is, anders wacht op het netwerk
-        return cachedResponse || fetchPromise;
-      });
-    })
+        }
+        return networkResponse;
+      })
+      .catch(() => {
+        // Geen internet/offline? Gebruik de gecachete versie
+        return caches.match(event.request);
+      })
   );
 });
