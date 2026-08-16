@@ -120,12 +120,10 @@
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('sw.js').then((registration) => {
-          // Controleer direct bij het laden/openen op de achtergrond op updates
           registration.update();
         });
       });
 
-      // Zodra de Service Worker een nieuw bestand gecachet heeft, herlaad de pagina automatisch
       let refreshing = false;
       navigator.serviceWorker.addEventListener('controllerchange', () => {
         if (!refreshing) {
@@ -144,24 +142,38 @@
   
   <h2>Room Calculator</h2>
   
+  <!-- 1. Grootte batch -->
   <div class="form-group">
-    <label for="gram">Hoeveelheid room (gram):</label>
-    <input type="number" id="gram" value="1000" oninput="calculate()">
+    <label for="batchSize">Grootte batch (kg):</label>
+    <input type="number" id="batchSize" value="1000" oninput="calculate()">
   </div>
 
+  <!-- 2. Gemeten vetgehalte batch -->
   <div class="form-group">
-    <label for="fatPct">Vetpercentage room (%):</label>
-    <input type="number" id="fatPct" value="35" step="0.1" oninput="calculate()">
+    <label for="currentFat">Gemeten vetgehalte batch (%):</label>
+    <input type="number" id="currentFat" value="28.0" step="0.1" oninput="calculate()">
+  </div>
+
+  <!-- 3. Gewenst vetgehalte -->
+  <div class="form-group">
+    <label for="targetFat">Gewenst vetgehalte (%):</label>
+    <input type="number" id="targetFat" value="30.0" step="0.1" oninput="calculate()">
+  </div>
+
+  <!-- 4. Vetgehalte toe te voegen room -->
+  <div class="form-group">
+    <label for="creamFat">Vetgehalte toe te voegen room (%):</label>
+    <input type="number" id="creamFat" value="40.0" step="0.1" oninput="calculate()">
   </div>
 
   <div class="results">
     <div class="result-row">
-      <span>Vetgehalte:</span>
-      <span id="fatGrams" class="result-value">350 g</span>
+      <span>Toe te voegen room:</span>
+      <span id="creamToAdd" class="result-value">0 kg</span>
     </div>
     <div class="result-row">
-      <span>Vocht/Mager deel:</span>
-      <span id="waterGrams" class="result-value">650 g</span>
+      <span>Totale nieuwe batch:</span>
+      <span id="totalBatch" class="result-value">0 kg</span>
     </div>
   </div>
 
@@ -175,16 +187,26 @@
 </div>
 
 <script>
-  // Rekenlogica
+  // Pearson Square rekenlogica voor het ophogen van het vetgehalte
   function calculate() {
-    const gram = parseFloat(document.getElementById('gram').value) || 0;
-    const fatPct = parseFloat(document.getElementById('fatPct').value) || 0;
+    const batchSize = parseFloat(document.getElementById('batchSize').value) || 0;
+    const currentFat = parseFloat(document.getElementById('currentFat').value) || 0;
+    const targetFat = parseFloat(document.getElementById('targetFat').value) || 0;
+    const creamFat = parseFloat(document.getElementById('creamFat').value) || 0;
 
-    const fat = (gram * (fatPct / 100)).toFixed(1);
-    const water = (gram - fat).toFixed(1);
+    // Controleer of toevoegen van room mogelijk is (target moet tussen currentFat en creamFat liggen)
+    if (creamFat <= targetFat || targetFat <= currentFat) {
+      document.getElementById('creamToAdd').innerText = 'N.v.t.';
+      document.getElementById('totalBatch').innerText = batchSize.toFixed(1) + ' kg';
+      return;
+    }
 
-    document.getElementById('fatGrams').innerText = fat + ' g';
-    document.getElementById('waterGrams').innerText = water + ' g';
+    // Formule: (Target % - Huidige %) / (Room % - Target %) * Batchgrootte
+    const creamToAdd = ((targetFat - currentFat) / (creamFat - targetFat)) * batchSize;
+    const totalBatch = batchSize + creamToAdd;
+
+    document.getElementById('creamToAdd').innerText = creamToAdd.toFixed(1) + ' kg';
+    document.getElementById('totalBatch').innerText = totalBatch.toFixed(1) + ' kg';
   }
 
   // Eerste berekening bij laden
@@ -198,10 +220,8 @@
   const isIos = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
   const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
 
-  // Alleen tonen als de app nog niet geïnstalleerd is op het startscherm
   if (!isStandalone) {
     if (isIos) {
-      // iPhone / Safari
       installBtn.style.display = 'block';
       installBtn.addEventListener('click', () => {
         iosInstruction.style.display = iosInstruction.style.display === 'none' ? 'block' : 'none';
@@ -209,7 +229,6 @@
     }
   }
 
-  // Android / Chrome
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
