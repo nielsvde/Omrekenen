@@ -57,13 +57,19 @@
       font-weight: 600;
       margin-bottom: 6px;
     }
-    input {
+    input, select {
       width: 100%;
       padding: 12px;
       border: 1px solid #ccc;
       border-radius: 8px;
       font-size: 1rem;
       box-sizing: border-box;
+      background-color: #fff;
+    }
+    input:disabled {
+      background-color: #e9ecef;
+      color: #6c757d;
+      cursor: not-allowed;
     }
     .results {
       margin-top: 24px;
@@ -72,6 +78,13 @@
       border-radius: 8px;
       border-left: 4px solid var(--primary);
       text-align: left;
+    }
+    .results-title {
+      font-size: 1.1rem;
+      font-weight: bold;
+      margin-top: 0;
+      margin-bottom: 12px;
+      color: #1a1a1a;
     }
     .result-row {
       display: flex;
@@ -145,44 +158,54 @@
   <!-- 1. Grootte batch -->
   <div class="form-group">
     <label for="batchSize">Grootte batch (kg):</label>
-    <input type="number" id="batchSize" value="" oninput="calculate()">
+    <input type="number" id="batchSize" placeholder="bijv. 1000" oninput="calculate()">
   </div>
 
   <!-- 2. Gemeten vetgehalte batch -->
   <div class="form-group">
     <label for="currentFat">Gemeten vetgehalte batch (%):</label>
-    <input type="number" id="currentFat" value="28.0" step="0.1" oninput="calculate()">
+    <input type="number" id="currentFat" placeholder="bijv. 28,0" step="0.1" oninput="calculate()">
   </div>
 
   <!-- 3. Gewenst vetgehalte -->
   <div class="form-group">
     <label for="targetFat">Gewenst vetgehalte (%):</label>
-    <input type="number" id="targetFat" value="30.0" step="0.1" oninput="calculate()">
+    <input type="number" id="targetFat" placeholder="bijv. 30,0" step="0.1" oninput="calculate()">
   </div>
 
-  <!-- 4. Vetgehalte toe te voegen room -->
+  <!-- Keuzevak Toevoeging -->
   <div class="form-group">
-    <label for="creamFat">Vetgehalte toe te voegen room (%):</label>
-    <input type="number" id="creamFat" value="40.0" step="0.1" oninput="calculate()">
+    <label for="additionType">Toevoeging kiezen:</label>
+    <select id="additionType" onchange="toggleAdditionType()">
+      <option value="cream">Room</option>
+      <option value="fat">Vloeibaar vet (olie/palmolie 100%)</option>
+    </select>
+  </div>
+
+  <!-- 4. Vetgehalte toe te voegen room/vet -->
+  <div class="form-group">
+    <label id="creamFatLabel" for="creamFat">Vetgehalte toe te voegen room (%):</label>
+    <input type="number" id="creamFat" placeholder="bijv. 40,0" step="0.1" oninput="calculate()">
   </div>
 
   <div class="results">
+    <h3 class="results-title">Resultaat</h3>
     <div class="result-row">
-      <span>Hoeveelheid room toevoegen:</span>
-      <span id="creamToAdd" class="result-value">0,0 kg</span>
+      <span id="addLabel">Hoeveelheid room toevoegen:</span>
+      <span id="addValue" class="result-value">0,0 kg</span>
     </div>
     <div class="result-row">
       <span>Hoeveelheid water toevoegen:</span>
       <span id="waterToAdd" class="result-value">0,0 kg</span>
     </div>
     <div class="result-row" style="margin-top: 10px; padding-top: 8px; border-top: 1px solid #ddd;">
-      <span>Totale grootte batch na correctie:</span>
-      <span id="totalBatch" class="result-value">1000,0 kg</span>
+      <span>Totale grootte batch:</span>
+      <span id="totalBatch" class="result-value">0,0 kg</span>
     </div>
   </div>
 
   <!-- Installatieknop voor PWA -->
-  <button id="installBtn" class="btn-install">📲 Voeg toe aan startscherm</button>
+  <button id="installBtn" class="btn-install">📲 Installeer app</button>
   
   <!-- Instructievenster voor iPhone/iPad -->
   <div id="iosInstruction" class="ios-box">
@@ -191,38 +214,56 @@
 </div>
 
 <script>
+  function toggleAdditionType() {
+    const additionType = document.getElementById('additionType').value;
+    const creamFatInput = document.getElementById('creamFat');
+    const creamFatLabel = document.getElementById('creamFatLabel');
+    const addLabel = document.getElementById('addLabel');
+
+    if (additionType === 'fat') {
+      creamFatInput.value = '100';
+      creamFatInput.disabled = true;
+      creamFatLabel.innerText = 'Vetgehalte vloeibaar vet (%):';
+      addLabel.innerText = 'Hoeveelheid vloeibaar vet toevoegen:';
+    } else {
+      creamFatInput.value = '';
+      creamFatInput.placeholder = 'bijv. 40,0';
+      creamFatInput.disabled = false;
+      creamFatLabel.innerText = 'Vetgehalte toe te voegen room (%):';
+      addLabel.innerText = 'Hoeveelheid room toevoegen:';
+    }
+    calculate();
+  }
+
   function calculate() {
     const batchSize = parseFloat(document.getElementById('batchSize').value) || 0;
     const currentFat = parseFloat(document.getElementById('currentFat').value) || 0;
     const targetFat = parseFloat(document.getElementById('targetFat').value) || 0;
     const creamFat = parseFloat(document.getElementById('creamFat').value) || 0;
 
-    let creamToAdd = 0;
+    let addAmount = 0;
     let waterToAdd = 0;
 
-    // Scenario 1: Vetgehalte moet omhoog (toevoegen van room)
-    if (currentFat < targetFat) {
+    // Vetgehalte verhogen
+    if (currentFat > 0 && targetFat > currentFat) {
       if (creamFat > targetFat) {
         // Formule: (Target - Current) / (Cream - Target) * BatchSize
-        creamToAdd = ((targetFat - currentFat) / (creamFat - targetFat)) * batchSize;
+        addAmount = ((targetFat - currentFat) / (creamFat - targetFat)) * batchSize;
       }
     } 
-    // Scenario 2: Vetgehalte moet omlaag (toevoegen van water / verdunnen)
+    // Vetgehalte verlagen (verdunnen met water)
     else if (currentFat > targetFat && targetFat > 0) {
       // Formule: (Current / Target - 1) * BatchSize
       waterToAdd = ((currentFat / targetFat) - 1) * batchSize;
     }
 
-    const totalBatch = batchSize + creamToAdd + waterToAdd;
+    const totalBatch = batchSize + addAmount + waterToAdd;
 
     // Weergave bijwerken
-    document.getElementById('creamToAdd').innerText = creamToAdd.toFixed(1).replace('.', ',') + ' kg';
+    document.getElementById('addValue').innerText = addAmount.toFixed(1).replace('.', ',') + ' kg';
     document.getElementById('waterToAdd').innerText = waterToAdd.toFixed(1).replace('.', ',') + ' kg';
     document.getElementById('totalBatch').innerText = totalBatch.toFixed(1).replace('.', ',') + ' kg';
   }
-
-  // Eerste berekening bij laden
-  calculate();
 
   // PWA Installatie Logica
   let deferredPrompt;
