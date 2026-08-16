@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Product correctie calculator</title>
   <link rel="manifest" href="manifest.json">
-  <link rel="icon" type="image/png" href="icon.png">
-  <link rel="apple-touch-icon" href="icon.png">
+  <link rel="icon" type="image/svg+xml" href="logo.svg">
+  <link rel="apple-touch-icon" href="logo.svg">
   <meta name="theme-color" content="#007bff">
   
   <style>
@@ -48,25 +48,24 @@
       }
     }
     
-    /* Header layout met logo.png en logotekst.png naast elkaar */
+    /* Header layout met logo.svg en logotekst.svg naast elkaar */
     .header-container {
       display: flex;
       align-items: center;
-      gap: 12px;
-      margin-bottom: 20px;
+      gap: 15px;
+      margin-bottom: 24px;
       text-align: left;
     }
     .header-logo {
-      width: 48px;
       height: 48px;
-      border-radius: 12px;
-      object-fit: cover;
+      width: auto;
+      display: block;
       flex-shrink: 0;
     }
     .header-text-img {
-      height: 36px; /* Pas de hoogte aan indien gewenst voor de juiste verhouding */
+      height: 38px;
       width: auto;
-      object-fit: contain;
+      display: block;
     }
 
     .form-group {
@@ -272,10 +271,10 @@
 <body>
 
 <div class="card">
-  <!-- Header: logo.png en logotekst.png naast elkaar -->
+  <!-- Header: logo.svg en logotekst.svg naast elkaar -->
   <div class="header-container">
-    <img src="logo.png" alt="Logo" class="header-logo">
-    <img src="logotekst.png" alt="Product correctie calculator" class="header-text-img">
+    <img src="logo.svg" alt="Logo" class="header-logo">
+    <img src="logotekst.svg" alt="Product correctie calculator" class="header-text-img">
   </div>
   
   <!-- 1. Grootte batch -->
