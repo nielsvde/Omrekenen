@@ -48,7 +48,7 @@
       }
     }
     
-    /* Header layout met logo naast titel */
+    /* Header layout met logo.png en logotekst.png naast elkaar */
     .header-container {
       display: flex;
       align-items: center;
@@ -56,18 +56,17 @@
       margin-bottom: 20px;
       text-align: left;
     }
-    .logo {
+    .header-logo {
       width: 48px;
       height: 48px;
       border-radius: 12px;
       object-fit: cover;
       flex-shrink: 0;
     }
-    h2 {
-      margin: 0;
-      font-size: 1.35rem;
-      color: #1a1a1a;
-      line-height: 1.2;
+    .header-text-img {
+      height: 36px; /* Pas de hoogte aan indien gewenst voor de juiste verhouding */
+      width: auto;
+      object-fit: contain;
     }
 
     .form-group {
@@ -131,7 +130,7 @@
     .tab-buttons {
       display: flex;
       gap: 6px;
-      margin-bottom: -1px; /* Sluit naadloos aan op de content-box */
+      margin-bottom: -1px;
       position: relative;
       z-index: 1;
     }
@@ -223,7 +222,6 @@
       color: var(--primary);
     }
 
-    /* Styling voor de installatieknop & instructies */
     .btn-install {
       display: none;
       width: 100%;
@@ -253,7 +251,6 @@
     }
   </style>
 
-  <!-- Service Worker Registratie & Automatische Update Check -->
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
@@ -275,10 +272,10 @@
 <body>
 
 <div class="card">
-  <!-- Header: Logo met titel er direct rechts naast -->
+  <!-- Header: logo.png en logotekst.png naast elkaar -->
   <div class="header-container">
-    <img src="icon.png" alt="Logo" class="logo">
-    <h2>Correctie calculator</h2>
+    <img src="logo.png" alt="Logo" class="header-logo">
+    <img src="logotekst.png" alt="Product correctie calculator" class="header-text-img">
   </div>
   
   <!-- 1. Grootte batch -->
@@ -419,7 +416,6 @@
     const creamFatInput = document.getElementById('creamFat');
     const additionType = additionTypeSelect.value;
 
-    // Velden inactief maken als het gewenste vetgehalte lager is dan het gemeten vetgehalte
     if (currentFat > targetFat && targetFat > 0) {
       additionTypeSelect.disabled = true;
       creamFatInput.disabled = true;
@@ -440,7 +436,6 @@
     let waterToAdd = 0;
     let stepsHtml = '';
 
-    // Vetgehalte verhogen (room/vet toevoegen)
     if (currentFat > 0 && targetFat > currentFat) {
       rowAddIngredient.style.display = 'flex';
       rowAddWater.style.display = 'none';
@@ -470,7 +465,6 @@
         stepsHtml = '<p style="margin:0; color:#c0392b;">Het vetgehalte van de toevoeging moet hoger zijn dan het gewenste vetgehalte.</p>';
       }
     } 
-    // Vetgehalte verlagen (verdunnen met water)
     else if (currentFat > targetFat && targetFat > 0) {
       rowAddIngredient.style.display = 'none';
       rowAddWater.style.display = 'flex';
@@ -497,7 +491,6 @@
 
     const totalBatch = batchSize + addAmount + waterToAdd;
 
-    // Weergave bijwerken
     document.getElementById('addValue').innerText = Math.round(addAmount) + ' kg';
     document.getElementById('waterToAdd').innerText = Math.round(waterToAdd) + ' kg';
     document.getElementById('totalBatch').innerText = Math.round(totalBatch) + ' kg';
@@ -505,7 +498,6 @@
     document.getElementById('calcSteps').innerHTML = stepsHtml;
   }
 
-  // PWA Installatie Logica
   let deferredPrompt;
   const installBtn = document.getElementById('installBtn');
   const iosInstruction = document.getElementById('iosInstruction');
