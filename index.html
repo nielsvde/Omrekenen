@@ -51,11 +51,40 @@
       margin-bottom: 16px;
       text-align: left;
     }
+    .label-container {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
     label {
-      display: block;
       font-size: 0.9rem;
       font-weight: 600;
-      margin-bottom: 6px;
+    }
+    .info-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      background-color: var(--primary);
+      color: white;
+      border-radius: 50%;
+      font-size: 0.75rem;
+      font-weight: bold;
+      cursor: pointer;
+      user-select: none;
+    }
+    .info-tooltip {
+      display: none;
+      margin-top: 6px;
+      padding: 10px;
+      background-color: #fff3cd;
+      color: #856404;
+      border: 1px solid #ffeeba;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      line-height: 1.4;
     }
     input, select {
       width: 100%;
@@ -157,20 +186,26 @@
   
   <!-- 1. Grootte batch -->
   <div class="form-group">
-    <label for="batchSize">Grootte batch (kg):</label>
-    <input type="number" id="batchSize" placeholder="bijv. 1000" oninput="calculate()">
+    <div class="label-container">
+      <label for="batchSize">Grootte batch (kg):</label>
+      <span class="info-icon" onclick="toggleBatchTooltip()" title="Klik voor meer informatie">?</span>
+    </div>
+    <input type="number" id="batchSize" placeholder="bijv. 1000" step="1" oninput="calculate()">
+    <div id="batchTooltip" class="info-tooltip">
+      <strong>Let op:</strong> De huidige batchgrootte kan afwijken van recept, als er een grondstof (water, room, vet) niet juist of volledig gedoseerd is!
+    </div>
   </div>
 
   <!-- 2. Gemeten vetgehalte batch -->
   <div class="form-group">
     <label for="currentFat">Gemeten vetgehalte batch (%):</label>
-    <input type="number" id="currentFat" placeholder="bijv. 28,0" step="0.1" oninput="calculate()">
+    <input type="number" id="currentFat" placeholder="bijv. 28,00" step="0.01" oninput="calculate()">
   </div>
 
   <!-- 3. Gewenst vetgehalte -->
   <div class="form-group">
     <label for="targetFat">Gewenst vetgehalte (%):</label>
-    <input type="number" id="targetFat" placeholder="bijv. 30,0" step="0.1" oninput="calculate()">
+    <input type="number" id="targetFat" placeholder="bijv. 30,00" step="0.01" oninput="calculate()">
   </div>
 
   <!-- Keuzevak Toevoeging -->
@@ -185,22 +220,22 @@
   <!-- 4. Vetgehalte toe te voegen room/vet -->
   <div class="form-group">
     <label id="creamFatLabel" for="creamFat">Vetgehalte toe te voegen room (%):</label>
-    <input type="number" id="creamFat" placeholder="bijv. 40,0" step="0.1" oninput="calculate()">
+    <input type="number" id="creamFat" placeholder="bijv. 43,00" step="0.01" oninput="calculate()">
   </div>
 
   <div class="results">
     <h3 class="results-title">Resultaat</h3>
     <div class="result-row">
       <span id="addLabel">Hoeveelheid room toevoegen:</span>
-      <span id="addValue" class="result-value">0,0 kg</span>
+      <span id="addValue" class="result-value">0 kg</span>
     </div>
     <div class="result-row">
       <span>Hoeveelheid water toevoegen:</span>
-      <span id="waterToAdd" class="result-value">0,0 kg</span>
+      <span id="waterToAdd" class="result-value">0 kg</span>
     </div>
     <div class="result-row" style="margin-top: 10px; padding-top: 8px; border-top: 1px solid #ddd;">
       <span>Totale grootte batch:</span>
-      <span id="totalBatch" class="result-value">0,0 kg</span>
+      <span id="totalBatch" class="result-value">0 kg</span>
     </div>
   </div>
 
@@ -214,6 +249,11 @@
 </div>
 
 <script>
+  function toggleBatchTooltip() {
+    const tooltip = document.getElementById('batchTooltip');
+    tooltip.style.display = tooltip.style.display === 'block' ? 'none' : 'block';
+  }
+
   function toggleAdditionType() {
     const additionType = document.getElementById('additionType').value;
     const creamFatInput = document.getElementById('creamFat');
@@ -227,7 +267,7 @@
       addLabel.innerText = 'Hoeveelheid vloeibaar vet toevoegen:';
     } else {
       creamFatInput.value = '';
-      creamFatInput.placeholder = 'bijv. 40,0';
+      creamFatInput.placeholder = 'bijv. 43,00';
       creamFatInput.disabled = false;
       creamFatLabel.innerText = 'Vetgehalte toe te voegen room (%):';
       addLabel.innerText = 'Hoeveelheid room toevoegen:';
@@ -247,22 +287,20 @@
     // Vetgehalte verhogen
     if (currentFat > 0 && targetFat > currentFat) {
       if (creamFat > targetFat) {
-        // Formule: (Target - Current) / (Cream - Target) * BatchSize
         addAmount = ((targetFat - currentFat) / (creamFat - targetFat)) * batchSize;
       }
     } 
     // Vetgehalte verlagen (verdunnen met water)
     else if (currentFat > targetFat && targetFat > 0) {
-      // Formule: (Current / Target - 1) * BatchSize
       waterToAdd = ((currentFat / targetFat) - 1) * batchSize;
     }
 
     const totalBatch = batchSize + addAmount + waterToAdd;
 
-    // Weergave bijwerken
-    document.getElementById('addValue').innerText = addAmount.toFixed(1).replace('.', ',') + ' kg';
-    document.getElementById('waterToAdd').innerText = waterToAdd.toFixed(1).replace('.', ',') + ' kg';
-    document.getElementById('totalBatch').innerText = totalBatch.toFixed(1).replace('.', ',') + ' kg';
+    // Weergave bijwerken: afgerond op hele getallen (Math.round)
+    document.getElementById('addValue').innerText = Math.round(addAmount) + ' kg';
+    document.getElementById('waterToAdd').innerText = Math.round(waterToAdd) + ' kg';
+    document.getElementById('totalBatch').innerText = Math.round(totalBatch) + ' kg';
   }
 
   // PWA Installatie Logica
