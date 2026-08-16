@@ -1,393 +1,4 @@
-<!DOCTYPE html>
-<html lang="nl">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Product correctie calculator</title>
-  <link rel="manifest" href="manifest.json">
-  <link rel="icon" type="image/png" href="icon.png">
-  <link rel="apple-touch-icon" href="icon.png">
-  <meta name="theme-color" content="#007bff">
-  
-  <style>
-    :root {
-      --primary: #007bff;
-      --primary-hover: #0056b3;
-      --bg: #f4f6f9;
-      --card-bg: #ffffff;
-      --text: #333333;
-      --card-blue-bg: #f0f7ff;
-      --border-blue: #cce5ff;
-    }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background-color: var(--bg);
-      color: var(--text);
-      margin: 0;
-      padding: 12px;
-      display: flex;
-      justify-content: center;
-    }
-    .card {
-      background: var(--card-bg);
-      padding: 20px 16px;
-      border-radius: 16px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-      width: 100%;
-      max-width: 480px;
-      box-sizing: border-box;
-      text-align: center;
-    }
-
-    @media (min-width: 480px) {
-      body {
-        padding: 20px;
-      }
-      .card {
-        padding: 24px;
-      }
-    }
-    
-    /* Header layout met logo naast titel */
-    .header-container {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 20px;
-      text-align: left;
-    }
-    .logo {
-      width: 48px;
-      height: 48px;
-      border-radius: 12px;
-      object-fit: cover;
-      flex-shrink: 0;
-    }
-    h2 {
-      margin: 0;
-      font-size: 1.35rem;
-      color: #1a1a1a;
-      line-height: 1.2;
-    }
-
-    .form-group {
-      margin-bottom: 16px;
-      text-align: left;
-    }
-    .label-container {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      margin-bottom: 6px;
-    }
-    label {
-      font-size: 0.9rem;
-      font-weight: 600;
-    }
-    .info-icon {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 18px;
-      height: 18px;
-      background-color: var(--primary);
-      color: white;
-      border-radius: 50%;
-      font-size: 0.75rem;
-      font-weight: bold;
-      cursor: pointer;
-      user-select: none;
-    }
-    .info-tooltip {
-      display: none;
-      margin-top: 6px;
-      padding: 10px;
-      background-color: #fff3cd;
-      color: #856404;
-      border: 1px solid #ffeeba;
-      border-radius: 8px;
-      font-size: 0.82rem;
-      line-height: 1.4;
-    }
-    input, select {
-      width: 100%;
-      padding: 12px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 1rem;
-      box-sizing: border-box;
-      background-color: #fff;
-    }
-    input:disabled {
-      background-color: #e9ecef;
-      color: #6c757d;
-      cursor: not-allowed;
-    }
-
-    /* Vernieuwde Tabs & Resultatenblok als 1 geheel */
-    .tabs-wrapper {
-      margin-top: 24px;
-    }
-    .tab-buttons {
-      display: flex;
-      gap: 6px;
-      margin-bottom: -1px; /* Sluit naadloos aan op de content-box */
-      position: relative;
-      z-index: 1;
-    }
-    .tab-btn {
-      flex: 1;
-      padding: 10px 12px;
-      border: 1px solid var(--border-blue);
-      border-bottom: none;
-      background: #e1eeef;
-      font-size: 0.9rem;
-      font-weight: 600;
-      color: #555;
-      cursor: pointer;
-      border-radius: 10px 10px 0 0;
-      transition: all 0.2s ease;
-    }
-    .tab-btn.active {
-      background: var(--card-blue-bg);
-      color: var(--primary);
-      border-color: var(--border-blue);
-      font-weight: 700;
-    }
-
-    .tab-content-container {
-      background: var(--card-blue-bg);
-      border: 1px solid var(--border-blue);
-      border-radius: 0 0 12px 12px;
-      padding: 16px 14px;
-      text-align: left;
-      box-shadow: inset 0 1px 3px rgba(0,0,0,0.02);
-    }
-    .tab-content {
-      display: none;
-    }
-    .tab-content.active {
-      display: block;
-    }
-
-    .result-row {
-      display: flex;
-      justify-content: space-between;
-      gap: 8px;
-      margin-bottom: 10px;
-      font-size: 0.92rem;
-    }
-    .result-row:last-child {
-      margin-bottom: 0;
-    }
-    .result-value {
-      font-weight: bold;
-      white-space: nowrap;
-    }
-
-    /* Berekening stappen styling */
-    .calc-step {
-      margin-bottom: 12px;
-      font-size: 0.88rem;
-      line-height: 1.4;
-      color: #333;
-    }
-    .calc-step:last-child {
-      margin-bottom: 0;
-    }
-    .calc-step strong {
-      color: #000;
-    }
-
-    /* Footer acties (Feedback / PWA) */
-    .footer-actions {
-      margin-top: 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      align-items: center;
-    }
-    .feedback-link {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.85rem;
-      color: #6c757d;
-      text-decoration: none;
-      padding: 6px 12px;
-      border-radius: 6px;
-      transition: background-color 0.2s ease;
-    }
-    .feedback-link:hover {
-      background-color: #e9ecef;
-      color: var(--primary);
-    }
-
-    /* Styling voor de installatieknop & instructies */
-    .btn-install {
-      display: none;
-      width: 100%;
-      padding: 12px;
-      background-color: var(--primary);
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-size: 0.95rem;
-      font-weight: bold;
-      cursor: pointer;
-      transition: background-color 0.2s ease;
-    }
-    .btn-install:hover {
-      background-color: var(--primary-hover);
-    }
-    .ios-box {
-      display: none;
-      width: 100%;
-      padding: 12px;
-      background-color: #e9ecef;
-      border-radius: 8px;
-      font-size: 0.85rem;
-      text-align: center;
-      line-height: 1.4;
-      box-sizing: border-box;
-    }
-  </style>
-
-  <!-- Service Worker Registratie & Automatische Update Check -->
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js').then((registration) => {
-          registration.update();
-        });
-      });
-
-      let refreshing = false;
-      navigator.serviceWorker.addEventListener('controllerchange', () => {
-        if (!refreshing) {
-          refreshing = true;
-          window.location.reload();
-        }
-      });
-    }
-  </script>
-</head>
-<body>
-
-<div class="card">
-  <!-- Header: Logo met titel er direct rechts naast -->
-  <div class="header-container">
-    <img src="icon.png" alt="Logo" class="logo">
-    <h2>Correctie calculator</h2>
-  </div>
-  
-  <!-- 1. Grootte batch -->
-  <div class="form-group">
-    <div class="label-container">
-      <label for="batchSize">Grootte batch (kg):</label>
-      <span class="info-icon" onclick="toggleBatchTooltip()" title="Klik voor meer informatie">?</span>
-    </div>
-    <input type="number" id="batchSize" placeholder="bijv. 1000" step="1" oninput="calculate()">
-    <div id="batchTooltip" class="info-tooltip">
-      <strong>Let op:</strong> De huidige batchgrootte kan afwijken van recept, als er een grondstof (water, room, vet) niet juist of volledig gedoseerd is!
-    </div>
-  </div>
-
-  <!-- 2. Gemeten vetgehalte batch -->
-  <div class="form-group">
-    <label for="currentFat">Gemeten vetgehalte batch (%):</label>
-    <input type="number" id="currentFat" placeholder="bijv. 28,00" step="0.01" oninput="calculate()">
-  </div>
-
-  <!-- 3. Gewenst vetgehalte -->
-  <div class="form-group">
-    <label for="targetFat">Gewenst vetgehalte (%):</label>
-    <input type="number" id="targetFat" placeholder="bijv. 30,00" step="0.01" oninput="calculate()">
-  </div>
-
-  <!-- Keuzevak Toevoeging -->
-  <div class="form-group">
-    <label for="additionType">Toevoeging kiezen:</label>
-    <select id="additionType" onchange="toggleAdditionType()">
-      <option value="cream">Room</option>
-      <option value="fat">Vloeibaar vet (olie/palmolie 100%)</option>
-    </select>
-  </div>
-
-  <!-- 4. Vetgehalte toe te voegen room/vet -->
-  <div class="form-group">
-    <label id="creamFatLabel" for="creamFat">Vetgehalte toe te voegen room (%):</label>
-    <input type="number" id="creamFat" placeholder="bijv. 43,00" step="0.01" oninput="calculate()">
-  </div>
-
-  <!-- Gecombineerde Tabbladen & Resultaat Sectie -->
-  <div class="tabs-wrapper">
-    <div class="tab-buttons">
-      <button class="tab-btn active" onclick="switchTab('tab-resultat')">Resultaat</button>
-      <button class="tab-btn" onclick="switchTab('tab-berekening')">Berekening</button>
-    </div>
-
-    <div class="tab-content-container">
-      <!-- Tab 1: Resultaat -->
-      <div id="tab-resultat" class="tab-content active">
-        <div class="result-row" id="rowAddIngredient">
-          <span id="addLabel">Hoeveelheid room toevoegen:</span>
-          <span id="addValue" class="result-value">0 kg</span>
-        </div>
-        <div class="result-row" id="rowAddWater">
-          <span>Hoeveelheid water toevoegen:</span>
-          <span id="waterToAdd" class="result-value">0 kg</span>
-        </div>
-        <div class="result-row" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border-blue);">
-          <span>Totale grootte batch na correctie:</span>
-          <span id="totalBatch" class="result-value">0 kg</span>
-        </div>
-      </div>
-
-      <!-- Tab 2: Berekening in stappen -->
-      <div id="tab-berekening" class="tab-content">
-        <div id="calcSteps">
-          <p style="margin:0; font-style:italic; color:#666;">Vul de gegevens in om de berekening in stappen te zien.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Footer Acties (Feedback & PWA) -->
-  <div class="footer-actions">
-    <a href="mailto:nielsvde@hotmail.com?subject=Feedback%20Correctie%20Calculator&body=Beste%20Niels,%0A%0AIk%20heb%20een%20vraag,%20tip%20of%20fout%20ontdekt%20in%20de%20Correctie%20Calculator:%0A%0A" class="feedback-link">
-      💡 Tip of fout melden
-    </a>
-
-    <!-- Installatieknop voor PWA -->
-    <button id="installBtn" class="btn-install">📲 Installeer app</button>
-    
-    <!-- Instructievenster voor iPhone/iPad -->
-    <div id="iosInstruction" class="ios-box">
-      Tik onderaan op het <strong>Deel-icoon</strong> <span style="font-size: 1.1rem;">⎋</span> en kies <strong>'Zet op home-scherm'</strong>.
-    </div>
-  </div>
-</div>
-
-<script>
-  function toggleBatchTooltip() {
-    const tooltip = document.getElementById('batchTooltip');
-    tooltip.style.display = tooltip.style.display === 'block' ? 'none' : 'block';
-  }
-
-  function switchTab(tabId) {
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-
-    if (tabId === 'tab-resultat') {
-      document.querySelectorAll('.tab-btn')[0].classList.add('active');
-    } else {
-      document.querySelectorAll('.tab-btn')[1].classList.add('active');
-    }
-    document.getElementById(tabId).classList.add('active');
-  }
-
-  function toggleAdditionType() {
+function toggleAdditionType() {
     const additionType = document.getElementById('additionType').value;
     const creamFatInput = document.getElementById('creamFat');
     const creamFatLabel = document.getElementById('creamFatLabel');
@@ -401,9 +12,12 @@
     } else {
       creamFatInput.value = '';
       creamFatInput.placeholder = 'bijv. 43,00';
-      creamFatInput.disabled = false;
       creamFatLabel.innerText = 'Vetgehalte toe te voegen room (%):';
       addLabel.innerText = 'Hoeveelheid room toevoegen:';
+      // Schakel alleen in als het gewenste vetgehalte HOGER is dan het gemeten vetgehalte
+      const currentFat = parseFloat(document.getElementById('currentFat').value) || 0;
+      const targetFat = parseFloat(document.getElementById('targetFat').value) || 0;
+      creamFatInput.disabled = (targetFat <= currentFat && targetFat > 0);
     }
     calculate();
   }
@@ -412,9 +26,25 @@
     const batchSize = parseFloat(document.getElementById('batchSize').value) || 0;
     const currentFat = parseFloat(document.getElementById('currentFat').value) || 0;
     const targetFat = parseFloat(document.getElementById('targetFat').value) || 0;
-    const creamFat = parseFloat(document.getElementById('creamFat').value) || 0;
-    const additionType = document.getElementById('additionType').value;
+    const additionTypeSelect = document.getElementById('additionType');
+    const creamFatInput = document.getElementById('creamFat');
+    const additionType = additionTypeSelect.value;
 
+    // --- INACTIEF MAKEN VAN DE VELDEN BIJ VERDUNNEN ---
+    if (currentFat > targetFat && targetFat > 0) {
+      additionTypeSelect.disabled = true;
+      creamFatInput.disabled = true;
+    } else {
+      additionTypeSelect.disabled = false;
+      // Alleen instellen op disabled als er gekozen is voor 'vloeibaar vet'
+      if (additionType === 'fat') {
+        creamFatInput.disabled = true;
+      } else {
+        creamFatInput.disabled = false;
+      }
+    }
+
+    const creamFat = parseFloat(creamFatInput.value) || 0;
     const rowAddIngredient = document.getElementById('rowAddIngredient');
     const rowAddWater = document.getElementById('rowAddWater');
 
@@ -486,39 +116,3 @@
 
     document.getElementById('calcSteps').innerHTML = stepsHtml;
   }
-
-  // PWA Installatie Logica
-  let deferredPrompt;
-  const installBtn = document.getElementById('installBtn');
-  const iosInstruction = document.getElementById('iosInstruction');
-
-  const isIos = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
-  const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
-
-  if (!isStandalone) {
-    if (isIos) {
-      installBtn.style.display = 'block';
-      installBtn.addEventListener('click', () => {
-        iosInstruction.style.display = iosInstruction.style.display === 'none' ? 'block' : 'none';
-      });
-    }
-  }
-
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    installBtn.style.display = 'block';
-
-    installBtn.addEventListener('click', () => {
-      iosInstruction.style.display = 'none';
-      deferredPrompt.prompt();
-      deferredPrompt.userChoice.then(() => {
-        deferredPrompt = null;
-        installBtn.style.display = 'none';
-      });
-    });
-  });
-</script>
-
-</body>
-</html>
