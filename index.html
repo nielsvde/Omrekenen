@@ -33,14 +33,23 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.08);
       width: 100%;
       max-width: 400px;
+      text-align: center;
+    }
+    .logo {
+      width: 80px;
+      height: 80px;
+      border-radius: 16px;
+      margin-bottom: 12px;
+      object-fit: cover;
     }
     h2 {
       margin-top: 0;
+      margin-bottom: 20px;
       color: #1a1a1a;
-      text-align: center;
     }
     .form-group {
       margin-bottom: 16px;
+      text-align: left;
     }
     label {
       display: block;
@@ -62,6 +71,7 @@
       padding: 16px;
       border-radius: 8px;
       border-left: 4px solid var(--primary);
+      text-align: left;
     }
     .result-row {
       display: flex;
@@ -114,6 +124,9 @@
 <body>
 
 <div class="card">
+  <!-- Logo bovenaan -->
+  <img src="icon.png" alt="Logo" class="logo">
+  
   <h2>Room Calculator</h2>
   
   <div class="form-group">
