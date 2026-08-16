@@ -5,9 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Room Calculator</title>
   <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" href="icon.png">
+  <link rel="apple-touch-icon" href="icon.png">
+  <meta name="theme-color" content="#007bff">
+  
   <style>
     :root {
       --primary: #007bff;
+      --primary-hover: #0056b3;
       --bg: #f4f6f9;
       --card-bg: #ffffff;
       --text: #333333;
@@ -69,7 +74,37 @@
     .result-value {
       font-weight: bold;
     }
+
+    /* Styling voor de installatieknop & instructies */
+    .btn-install {
+      display: none;
+      width: 100%;
+      padding: 12px;
+      margin-top: 20px;
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+    .btn-install:hover {
+      background-color: var(--primary-hover);
+    }
+    .ios-box {
+      display: none;
+      margin-top: 12px;
+      padding: 12px;
+      background-color: #e9ecef;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      text-align: center;
+      line-height: 1.4;
+    }
   </style>
+
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js');
@@ -101,9 +136,18 @@
       <span id="waterGrams" class="result-value">650 g</span>
     </div>
   </div>
+
+  <!-- Installatieknop voor PWA -->
+  <button id="installBtn" class="btn-install">📲 Voeg toe aan startscherm</button>
+  
+  <!-- Instructievenster voor iPhone/iPad -->
+  <div id="iosInstruction" class="ios-box">
+    Tik onderaan op het <strong>Deel-icoon</strong> <span style="font-size: 1.1rem;">⎋</span> en kies <strong>'Zet op home-scherm'</strong>.
+  </div>
 </div>
 
 <script>
+  // Rekenlogica
   function calculate() {
     const gram = parseFloat(document.getElementById('gram').value) || 0;
     const fatPct = parseFloat(document.getElementById('fatPct').value) || 0;
@@ -115,8 +159,43 @@
     document.getElementById('waterGrams').innerText = water + ' g';
   }
 
-  // Eerste berekening bij het laden
+  // Eerste berekening bij laden
   calculate();
+
+  // PWA Installatie Logica
+  let deferredPrompt;
+  const installBtn = document.getElementById('installBtn');
+  const iosInstruction = document.getElementById('iosInstruction');
+
+  const isIos = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
+  const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
+
+  // Alleen tonen als de app nog niet geïnstalleerd is
+  if (!isStandalone) {
+    if (isIos) {
+      // iPhone / Safari
+      installBtn.style.display = 'block';
+      installBtn.addEventListener('click', () => {
+        iosInstruction.style.display = iosInstruction.style.display === 'none' ? 'block' : 'none';
+      });
+    }
+  }
+
+  // Android / Chrome
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    installBtn.style.display = 'block';
+
+    installBtn.addEventListener('click', () => {
+      iosInstruction.style.display = 'none';
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(() => {
+        deferredPrompt = null;
+        installBtn.style.display = 'none';
+      });
+    });
+  });
 </script>
 
 </body>
