@@ -1,48 +1,230 @@
-const CACHE_NAME = 'room-calc-dynamic';
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Room Calculator</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" href="icon.png">
+  <link rel="apple-touch-icon" href="icon.png">
+  <meta name="theme-color" content="#007bff">
+  
+  <style>
+    :root {
+      --primary: #007bff;
+      --primary-hover: #0056b3;
+      --bg: #f4f6f9;
+      --card-bg: #ffffff;
+      --text: #333333;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+    }
+    .card {
+      background: var(--card-bg);
+      padding: 24px;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+    .logo {
+      width: 80px;
+      height: 80px;
+      border-radius: 16px;
+      margin-bottom: 12px;
+      object-fit: cover;
+    }
+    h2 {
+      margin-top: 0;
+      margin-bottom: 20px;
+      color: #1a1a1a;
+    }
+    .form-group {
+      margin-bottom: 16px;
+      text-align: left;
+    }
+    label {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 1rem;
+      box-sizing: border-box;
+    }
+    .results {
+      margin-top: 24px;
+      background: #f8f9fa;
+      padding: 16px;
+      border-radius: 8px;
+      border-left: 4px solid var(--primary);
+      text-align: left;
+    }
+    .result-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .result-row:last-child {
+      margin-bottom: 0;
+    }
+    .result-value {
+      font-weight: bold;
+    }
 
-const ASSETS = [
-  './',
-  './index.html',
-  './manifest.json',
-  './icon.png'
-];
+    /* Styling voor de installatieknop & instructies */
+    .btn-install {
+      display: none;
+      width: 100%;
+      padding: 12px;
+      margin-top: 20px;
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+    .btn-install:hover {
+      background-color: var(--primary-hover);
+    }
+    .ios-box {
+      display: none;
+      margin-top: 12px;
+      padding: 12px;
+      background-color: #e9ecef;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      text-align: center;
+      line-height: 1.4;
+    }
+  </style>
 
-// Bij installatie: sla de basisbestanden op
-self.addEventListener('install', (event) => {
-  self.skipWaiting(); // Zorg dat een nieuwe SW direct actief wordt
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
-  );
-});
-
-self.addEventListener('activate', (event) => {
-  event.waitUntil(self.clients.claim());
-});
-
-// Slimme afhandeling: Stale-While-Revalidate
-self.addEventListener('fetch', (event) => {
-  // Alleen GET-verzoeken verwerken
-  if (event.request.method !== 'GET') return;
-
-  event.respondWith(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.match(event.request).then((cachedResponse) => {
-        // Haal altijd de nieuwste versie op van het netwerk op de achtergrond
-        const fetchPromise = fetch(event.request)
-          .then((networkResponse) => {
-            // Als de respons geldig is, werk de cache bij voor de volgende keer
-            if (networkResponse && networkResponse.status === 200) {
-              cache.put(event.request, networkResponse.clone());
-            }
-            return networkResponse;
-          })
-          .catch(() => {
-            // Offline? Geen probleem, we gebruiken de cache
-          });
-
-        // Geef direct de gecachete versie als die er is, anders wacht op het netwerk
-        return cachedResponse || fetchPromise;
+  <!-- Service Worker Registratie & Automatische Update Check -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').then((registration) => {
+          // Controleer direct bij het laden/openen op de achtergrond op updates
+          registration.update();
+        });
       });
-    })
-  );
-});
+
+      // Zodra de Service Worker een nieuw bestand gecachet heeft, herlaad de pagina automatisch
+      let refreshing = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!refreshing) {
+          refreshing = true;
+          window.location.reload();
+        }
+      });
+    }
+  </script>
+</head>
+<body>
+
+<div class="card">
+  <!-- Logo bovenaan -->
+  <img src="icon.png" alt="Logo" class="logo">
+  
+  <h2>Room Calculator</h2>
+  
+  <div class="form-group">
+    <label for="gram">Hoeveelheid room (gram):</label>
+    <input type="number" id="gram" value="1000" oninput="calculate()">
+  </div>
+
+  <div class="form-group">
+    <label for="fatPct">Vetpercentage room (%):</label>
+    <input type="number" id="fatPct" value="35" step="0.1" oninput="calculate()">
+  </div>
+
+  <div class="results">
+    <div class="result-row">
+      <span>Vetgehalte:</span>
+      <span id="fatGrams" class="result-value">350 g</span>
+    </div>
+    <div class="result-row">
+      <span>Vocht/Mager deel:</span>
+      <span id="waterGrams" class="result-value">650 g</span>
+    </div>
+  </div>
+
+  <!-- Installatieknop voor PWA -->
+  <button id="installBtn" class="btn-install">📲 Voeg toe aan startscherm</button>
+  
+  <!-- Instructievenster voor iPhone/iPad -->
+  <div id="iosInstruction" class="ios-box">
+    Tik onderaan op het <strong>Deel-icoon</strong> <span style="font-size: 1.1rem;">⎋</span> en kies <strong>'Zet op home-scherm'</strong>.
+  </div>
+</div>
+
+<script>
+  // Rekenlogica
+  function calculate() {
+    const gram = parseFloat(document.getElementById('gram').value) || 0;
+    const fatPct = parseFloat(document.getElementById('fatPct').value) || 0;
+
+    const fat = (gram * (fatPct / 100)).toFixed(1);
+    const water = (gram - fat).toFixed(1);
+
+    document.getElementById('fatGrams').innerText = fat + ' g';
+    document.getElementById('waterGrams').innerText = water + ' g';
+  }
+
+  // Eerste berekening bij laden
+  calculate();
+
+  // PWA Installatie Logica
+  let deferredPrompt;
+  const installBtn = document.getElementById('installBtn');
+  const iosInstruction = document.getElementById('iosInstruction');
+
+  const isIos = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
+  const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
+
+  // Alleen tonen als de app nog niet geïnstalleerd is op het startscherm
+  if (!isStandalone) {
+    if (isIos) {
+      // iPhone / Safari
+      installBtn.style.display = 'block';
+      installBtn.addEventListener('click', () => {
+        iosInstruction.style.display = iosInstruction.style.display === 'none' ? 'block' : 'none';
+      });
+    }
+  }
+
+  // Android / Chrome
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    installBtn.style.display = 'block';
+
+    installBtn.addEventListener('click', () => {
+      iosInstruction.style.display = 'none';
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(() => {
+        deferredPrompt = null;
+        installBtn.style.display = 'none';
+      });
+    });
+  });
+</script>
+
+</body>
+</html>
