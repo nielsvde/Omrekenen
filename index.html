@@ -16,6 +16,8 @@
       --bg: #f4f6f9;
       --card-bg: #ffffff;
       --text: #333333;
+      --card-blue-bg: #f0f7ff;
+      --border-blue: #cce5ff;
     }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -112,39 +114,47 @@
       cursor: not-allowed;
     }
 
-    /* Tabs Styling */
-    .tabs-container {
+    /* Vernieuwde Tabs & Resultatenblok als 1 geheel */
+    .tabs-wrapper {
       margin-top: 24px;
     }
     .tab-buttons {
       display: flex;
-      border-bottom: 2px solid #e0e0e0;
-      margin-bottom: 16px;
+      gap: 6px;
+      margin-bottom: -1px; /* Sluit naadloos aan op de content-box */
+      position: relative;
+      z-index: 1;
     }
     .tab-btn {
       flex: 1;
-      padding: 10px;
-      border: none;
-      background: none;
-      font-size: 0.95rem;
+      padding: 10px 14px;
+      border: 1px solid var(--border-blue);
+      border-bottom: none;
+      background: #e1eeef;
+      font-size: 0.9rem;
       font-weight: 600;
-      color: #666;
+      color: #555;
       cursor: pointer;
-      border-bottom: 3px solid transparent;
-      margin-bottom: -2px;
+      border-radius: 10px 10px 0 0;
       transition: all 0.2s ease;
     }
     .tab-btn.active {
+      background: var(--card-blue-bg);
       color: var(--primary);
-      border-bottom-color: var(--primary);
+      border-color: var(--border-blue);
+      font-weight: 700;
+    }
+
+    .tab-content-container {
+      background: var(--card-blue-bg);
+      border: 1px solid var(--border-blue);
+      border-radius: 0 0 12px 12px;
+      padding: 18px;
+      text-align: left;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.02);
     }
     .tab-content {
       display: none;
-      text-align: left;
-      background: #f8f9fa;
-      padding: 16px;
-      border-radius: 8px;
-      border-left: 4px solid var(--primary);
     }
     .tab-content.active {
       display: block;
@@ -153,7 +163,7 @@
     .result-row {
       display: flex;
       justify-content: space-between;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
     }
     .result-row:last-child {
       margin-bottom: 0;
@@ -167,13 +177,37 @@
       margin-bottom: 12px;
       font-size: 0.88rem;
       line-height: 1.4;
-      color: #444;
+      color: #333;
     }
     .calc-step:last-child {
       margin-bottom: 0;
     }
     .calc-step strong {
-      color: #1a1a1a;
+      color: #000;
+    }
+
+    /* Footer acties (Feedback / PWA) */
+    .footer-actions {
+      margin-top: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: center;
+    }
+    .feedback-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+      color: #6c757d;
+      text-decoration: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      transition: background-color 0.2s ease;
+    }
+    .feedback-link:hover {
+      background-color: #e9ecef;
+      color: var(--primary);
     }
 
     /* Styling voor de installatieknop & instructies */
@@ -181,7 +215,6 @@
       display: none;
       width: 100%;
       padding: 12px;
-      margin-top: 20px;
       background-color: var(--primary);
       color: white;
       border: none;
@@ -196,13 +229,14 @@
     }
     .ios-box {
       display: none;
-      margin-top: 12px;
+      width: 100%;
       padding: 12px;
       background-color: #e9ecef;
       border-radius: 8px;
       font-size: 0.85rem;
       text-align: center;
       line-height: 1.4;
+      box-sizing: border-box;
     }
   </style>
 
@@ -273,47 +307,52 @@
     <input type="number" id="creamFat" placeholder="bijv. 43,00" step="0.01" oninput="calculate()">
   </div>
 
-  <!-- Tabbladen Sectie -->
-  <div class="tabs-container">
+  <!-- Gecombineerde Tabbladen & Resultaat Sectie -->
+  <div class="tabs-wrapper">
     <div class="tab-buttons">
       <button class="tab-btn active" onclick="switchTab('tab-resultat')">Resultaat</button>
       <button class="tab-btn" onclick="switchTab('tab-berekening')">Berekening</button>
     </div>
 
-    <!-- Tab 1: Resultaat -->
-    <div id="tab-resultat" class="tab-content active">
-      <div class="result-row">
-        <span id="addLabel">Hoeveelheid room toevoegen:</span>
-        <span id="addValue" class="result-value">0 kg</span>
+    <div class="tab-content-container">
+      <!-- Tab 1: Resultaat -->
+      <div id="tab-resultat" class="tab-content active">
+        <div class="result-row" id="rowAddIngredient">
+          <span id="addLabel">Hoeveelheid room toevoegen:</span>
+          <span id="addValue" class="result-value">0 kg</span>
+        </div>
+        <div class="result-row" id="rowAddWater">
+          <span>Hoeveelheid water toevoegen:</span>
+          <span id="waterToAdd" class="result-value">0 kg</span>
+        </div>
+        <div class="result-row" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border-blue);">
+          <span>Totale grootte batch:</span>
+          <span id="totalBatch" class="result-value">0 kg</span>
+        </div>
       </div>
-      <div class="result-row">
-        <span>Hoeveelheid water toevoegen:</span>
-        <span id="waterToAdd" class="result-value">0 kg</span>
-      </div>
-      <div class="result-row" style="margin-top: 10px; padding-top: 8px; border-top: 1px solid #ddd;">
-        <span>Totale grootte batch:</span>
-        <span id="totalBatch" class="result-value">0 kg</span>
-      </div>
-      <div class="result-row" style="margin-top: 6px;">
-        <span>Totaal vet in product:</span>
-        <span id="totalFatKg" class="result-value">0 kg</span>
-      </div>
-    </div>
 
-    <!-- Tab 2: Berekening in stappen -->
-    <div id="tab-berekening" class="tab-content">
-      <div id="calcSteps">
-        <p style="margin:0; font-style:italic; color:#777;">Vul de gegevens in om de berekening in stappen te zien.</p>
+      <!-- Tab 2: Berekening in stappen -->
+      <div id="tab-berekening" class="tab-content">
+        <div id="calcSteps">
+          <p style="margin:0; font-style:italic; color:#666;">Vul de gegevens in om de berekening in stappen te zien.</p>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Installatieknop voor PWA -->
-  <button id="installBtn" class="btn-install">📲 Installeer app</button>
-  
-  <!-- Instructievenster voor iPhone/iPad -->
-  <div id="iosInstruction" class="ios-box">
-    Tik onderaan op het <strong>Deel-icoon</strong> <span style="font-size: 1.1rem;">⎋</span> en kies <strong>'Zet op home-scherm'</strong>.
+  <!-- Footer Acties (Feedback & PWA) -->
+  <div class="footer-actions">
+    <a href="mailto:nielsvde@hotmail.com?subject=Feedback%20Correctie%20Calculator&body=Beste%20Niels,%0A%0AIk%20heb%20een%20vraag,%20tip%20of%20fout%20ontdekt%20in%20de%20Correctie%20Calculator:%0A%0A" class="feedback-link">
+      💡 Tip of fout melden
+    </a>
+
+    <!-- Installatieknop voor PWA -->
+    <button id="installBtn" class="btn-install">📲 Installeer app</button>
+    
+    <!-- Instructievenster voor iPhone/iPad -->
+    <div id="iosInstruction" class="ios-box">
+      Tik onderaan op het <strong>Deel-icoon</strong> <span style="font-size: 1.1rem;">⎋</span> en kies <strong>'Zet op home-scherm'</strong>.
+    </div>
   </div>
 </div>
 
@@ -363,12 +402,18 @@
     const creamFat = parseFloat(document.getElementById('creamFat').value) || 0;
     const additionType = document.getElementById('additionType').value;
 
+    const rowAddIngredient = document.getElementById('rowAddIngredient');
+    const rowAddWater = document.getElementById('rowAddWater');
+
     let addAmount = 0;
     let waterToAdd = 0;
     let stepsHtml = '';
 
-    // Vetgehalte verhogen
+    // Vetgehalte verhogen (room/vet toevoegen)
     if (currentFat > 0 && targetFat > currentFat) {
+      rowAddIngredient.style.display = 'flex';
+      rowAddWater.style.display = 'none';
+
       if (creamFat > targetFat) {
         addAmount = ((targetFat - currentFat) / (creamFat - targetFat)) * batchSize;
         
@@ -396,6 +441,9 @@
     } 
     // Vetgehalte verlagen (verdunnen met water)
     else if (currentFat > targetFat && targetFat > 0) {
+      rowAddIngredient.style.display = 'none';
+      rowAddWater.style.display = 'flex';
+
       waterToAdd = ((currentFat / targetFat) - 1) * batchSize;
       
       const currentFatKg = (batchSize * currentFat) / 100;
@@ -411,17 +459,17 @@
         Totaal vet blijft ongewijzigd: <strong>${Math.round(currentFatKg)} kg vet</strong></div>
       `;
     } else {
-      stepsHtml = '<p style="margin:0; font-style:italic; color:#777;">Vul de gegevens in om de berekening in stappen te zien.</p>';
+      rowAddIngredient.style.display = 'flex';
+      rowAddWater.style.display = 'flex';
+      stepsHtml = '<p style="margin:0; font-style:italic; color:#666;">Vul de gegevens in om de berekening in stappen te zien.</p>';
     }
 
     const totalBatch = batchSize + addAmount + waterToAdd;
-    const totalFatKg = (totalBatch * targetFat) / 100;
 
     // Weergave bijwerken
     document.getElementById('addValue').innerText = Math.round(addAmount) + ' kg';
     document.getElementById('waterToAdd').innerText = Math.round(waterToAdd) + ' kg';
     document.getElementById('totalBatch').innerText = Math.round(totalBatch) + ' kg';
-    document.getElementById('totalFatKg').innerText = Math.round(totalFatKg) + ' kg';
 
     document.getElementById('calcSteps').innerHTML = stepsHtml;
   }
