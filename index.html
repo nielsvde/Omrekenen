@@ -168,12 +168,16 @@
 
   <div class="results">
     <div class="result-row">
-      <span>Toe te voegen room:</span>
-      <span id="creamToAdd" class="result-value">0 kg</span>
+      <span>Hoeveelheid room toevoegen:</span>
+      <span id="creamToAdd" class="result-value">0,0 kg</span>
     </div>
     <div class="result-row">
-      <span>Totale nieuwe batch:</span>
-      <span id="totalBatch" class="result-value">0 kg</span>
+      <span>Hoeveelheid water toevoegen:</span>
+      <span id="waterToAdd" class="result-value">0,0 kg</span>
+    </div>
+    <div class="result-row" style="margin-top: 10px; padding-top: 8px; border-top: 1px solid #ddd;">
+      <span>Totale grootte batch:</span>
+      <span id="totalBatch" class="result-value">1000,0 kg</span>
     </div>
   </div>
 
@@ -187,26 +191,34 @@
 </div>
 
 <script>
-  // Pearson Square rekenlogica voor het ophogen van het vetgehalte
   function calculate() {
     const batchSize = parseFloat(document.getElementById('batchSize').value) || 0;
     const currentFat = parseFloat(document.getElementById('currentFat').value) || 0;
     const targetFat = parseFloat(document.getElementById('targetFat').value) || 0;
     const creamFat = parseFloat(document.getElementById('creamFat').value) || 0;
 
-    // Controleer of toevoegen van room mogelijk is (target moet tussen currentFat en creamFat liggen)
-    if (creamFat <= targetFat || targetFat <= currentFat) {
-      document.getElementById('creamToAdd').innerText = 'N.v.t.';
-      document.getElementById('totalBatch').innerText = batchSize.toFixed(1) + ' kg';
-      return;
+    let creamToAdd = 0;
+    let waterToAdd = 0;
+
+    // Scenario 1: Vetgehalte moet omhoog (toevoegen van room)
+    if (currentFat < targetFat) {
+      if (creamFat > targetFat) {
+        // Formule: (Target - Current) / (Cream - Target) * BatchSize
+        creamToAdd = ((targetFat - currentFat) / (creamFat - targetFat)) * batchSize;
+      }
+    } 
+    // Scenario 2: Vetgehalte moet omlaag (toevoegen van water / verdunnen)
+    else if (currentFat > targetFat && targetFat > 0) {
+      // Formule: (Current / Target - 1) * BatchSize
+      waterToAdd = ((currentFat / targetFat) - 1) * batchSize;
     }
 
-    // Formule: (Target % - Huidige %) / (Room % - Target %) * Batchgrootte
-    const creamToAdd = ((targetFat - currentFat) / (creamFat - targetFat)) * batchSize;
-    const totalBatch = batchSize + creamToAdd;
+    const totalBatch = batchSize + creamToAdd + waterToAdd;
 
-    document.getElementById('creamToAdd').innerText = creamToAdd.toFixed(1) + ' kg';
-    document.getElementById('totalBatch').innerText = totalBatch.toFixed(1) + ' kg';
+    // Weergave bijwerken
+    document.getElementById('creamToAdd').innerText = creamToAdd.toFixed(1).replace('.', ',') + ' kg';
+    document.getElementById('waterToAdd').innerText = waterToAdd.toFixed(1).replace('.', ',') + ' kg';
+    document.getElementById('totalBatch').innerText = totalBatch.toFixed(1).replace('.', ',') + ' kg';
   }
 
   // Eerste berekening bij laden
