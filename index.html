@@ -48,24 +48,25 @@
       }
     }
     
-    /* Header layout met logo.png en logotekst.png naast elkaar */
+    /* Geoptimaliseerde CSS voor de PNG header elementen */
     .header-container {
       display: flex;
       align-items: center;
-      gap: 12px;
-      margin-bottom: 20px;
+      gap: 15px;
+      margin-bottom: 24px;
       text-align: left;
     }
     .header-logo {
-      width: 48px;
       height: 48px;
-      border-radius: 12px;
-      object-fit: cover;
+      width: auto;
+      display: block;
       flex-shrink: 0;
+      object-fit: contain;
     }
     .header-text-img {
-      height: 36px;
+      height: 38px;
       width: auto;
+      display: block;
       object-fit: contain;
     }
 
