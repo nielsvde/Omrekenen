@@ -404,9 +404,12 @@
         <div class="form-group" style="margin-bottom: 12px;">
           <label for="missingComponent" style="font-size:0.85rem;">Vermoedelijke oorzaak afwijking:</label>
           <select id="missingComponent" onchange="onMissingComponentChange()" style="padding: 8px; font-size:0.9rem;">
-            <option value="cream">Er is te weinig room gedoseerd</option>
-            <option value="fat">Er is te weinig vloeibaar vet gedoseerd</option>
-            <option value="water">Er is te weinig water gedoseerd</option>
+            <option value="cream_less">Er is te weinig room gedoseerd</option>
+            <option value="cream_more">Er is te veel room gedoseerd</option>
+            <option value="fat_less">Er is te weinig vloeibaar vet gedoseerd</option>
+            <option value="fat_more">Er is te veel vloeibaar vet gedoseerd</option>
+            <option value="water_less">Er is te weinig water gedoseerd</option>
+            <option value="water_more">Er is te veel water gedoseerd</option>
           </select>
         </div>
         <div id="deviationResults">
@@ -491,10 +494,10 @@
     const missingComponent = document.getElementById('missingComponent').value;
     const additionTypeSelect = document.getElementById('additionType');
 
-    if (missingComponent === 'fat' && additionTypeSelect.value !== 'fat') {
+    if ((missingComponent === 'fat_less' || missingComponent === 'fat_more') && additionTypeSelect.value !== 'fat') {
       additionTypeSelect.value = 'fat';
       toggleAdditionType();
-    } else if (missingComponent === 'cream' && additionTypeSelect.value !== 'cream') {
+    } else if ((missingComponent === 'cream_less' || missingComponent === 'cream_more') && additionTypeSelect.value !== 'cream') {
       additionTypeSelect.value = 'cream';
       toggleAdditionType();
     } else {
@@ -523,7 +526,7 @@
     additionTypeSelect.value = 'cream';
     additionTypeSelect.disabled = false;
 
-    document.getElementById('missingComponent').value = 'cream';
+    document.getElementById('missingComponent').value = 'cream_less';
     
     toggleAdditionType();
   }
@@ -625,10 +628,10 @@
       let devIngredientLabel = ingredientName;
       let effectiveCreamFat = creamFat;
 
-      if (missingComponent === 'fat') {
+      if (missingComponent.startsWith('fat')) {
         devIngredientLabel = 'vloeibaar vet';
         effectiveCreamFat = 100;
-      } else if (missingComponent === 'cream') {
+      } else if (missingComponent.startsWith('cream')) {
         devIngredientLabel = 'room';
       }
 
@@ -640,7 +643,7 @@
       let actualWater = 0;
       let actualTotal = 0;
 
-      if (missingComponent === 'cream' || missingComponent === 'fat') {
+      if (missingComponent === 'cream_less' || missingComponent === 'cream_more' || missingComponent === 'fat_less' || missingComponent === 'fat_more') {
         actualWater = plannedWater;
         const ingredientFraction = currentFat / effectiveCreamFat;
         actualTotal = actualWater / (1 - ingredientFraction);
@@ -673,7 +676,7 @@
         </div>
         <div class="result-row">
           <span>Werkelijk aanwezige ${devIngredientLabel}:</span>
-          <span class="result-value" style="color:${diffIngredient < 0 ? '#c0392b' : '#27ae60'}">${Math.round(actualIngredient)} kg (${Math.round(diffIngredient)} kg)</span>
+          <span class="result-value" style="color:${diffIngredient < 0 ? '#c0392b' : (diffIngredient > 0 ? '#d35400' : '#27ae60')}">${Math.round(actualIngredient)} kg (${diffIngredient > 0 ? '+' : ''}${Math.round(diffIngredient)} kg)</span>
         </div>
         <div class="result-row" style="margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border-blue);">
           <span><strong>Vermoedelijke werkelijke batchgrootte:</strong></span>
@@ -681,7 +684,7 @@
         </div>
         <div class="result-row">
           <span>Verschil met gepland:</span>
-          <span class="result-value" style="color:${diffTotal < 0 ? '#c0392b' : '#27ae60'}">${Math.round(diffTotal)} kg</span>
+          <span class="result-value" style="color:${diffTotal < 0 ? '#c0392b' : (diffTotal > 0 ? '#d35400' : '#27ae60')}">${diffTotal > 0 ? '+' : ''}${Math.round(diffTotal)} kg</span>
         </div>
         <button type="button" class="btn-update-batch" onclick="updateBatchSizeFromCalculated()">
           ↺ Gebruik ${Math.round(actualTotal)} kg als geplande batchgrootte
