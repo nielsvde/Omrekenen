@@ -1,6 +1,6 @@
 {
   "name": "Product Correctie Calculator",
-  "short_name": "Calculator",
+  "short_name": "Correctie Calculator",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#ffffff",
