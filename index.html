@@ -199,6 +199,24 @@
       color: #000;
     }
 
+    /* Actieknop binnen tab content */
+    .btn-update-batch {
+      width: 100%;
+      margin-top: 12px;
+      padding: 8px 12px;
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+    .btn-update-batch:hover {
+      background-color: var(--primary-hover);
+    }
+
     /* Footer acties (Feedback / PWA) */
     .footer-actions {
       margin-top: 24px;
@@ -383,6 +401,8 @@
 </div>
 
 <script>
+  let computedActualTotal = 0;
+
   function toggleBatchTooltip() {
     const tooltip = document.getElementById('batchTooltip');
     tooltip.style.display = tooltip.style.display === 'block' ? 'none' : 'block';
@@ -424,6 +444,13 @@
       creamFatInput.disabled = (targetFat <= currentFat && targetFat > 0);
     }
     calculate();
+  }
+
+  function updateBatchSizeFromCalculated() {
+    if (computedActualTotal > 0) {
+      document.getElementById('batchSize').value = Math.round(computedActualTotal);
+      calculate();
+    }
   }
 
   function calculate() {
@@ -531,19 +558,18 @@
       let actualTotal = 0;
 
       if (missingComponent === 'ingredient') {
-        // Water is correct gedoseerd, room/vet is te weinig
         actualWater = plannedWater;
-        // Inhoud bestaat uit (currentFat / creamFat) deel room/vet
         const ingredientFraction = currentFat / creamFat;
         actualTotal = actualWater / (1 - ingredientFraction);
         actualIngredient = actualTotal - actualWater;
       } else {
-        // Room/vet is correct gedoseerd, water is te weinig
         actualIngredient = plannedIngredient;
         const totalFatKgActual = (actualIngredient * creamFat) / 100;
         actualTotal = (totalFatKgActual / currentFat) * 100;
         actualWater = actualTotal - actualIngredient;
       }
+
+      computedActualTotal = actualTotal;
 
       const diffTotal = actualTotal - batchSize;
       const diffIngredient = actualIngredient - plannedIngredient;
@@ -574,8 +600,12 @@
           <span>Verschil met gepland:</span>
           <span class="result-value" style="color:${diffTotal < 0 ? '#c0392b' : '#27ae60'}">${Math.round(diffTotal)} kg</span>
         </div>
+        <button type="button" class="btn-update-batch" onclick="updateBatchSizeFromCalculated()">
+          ↺ Gebruik ${Math.round(actualTotal)} kg als geplande batchgrootte
+        </button>
       `;
     } else {
+      computedActualTotal = 0;
       devContainer.innerHTML = '<p style="margin:0; font-style:italic; color:#666;">Vul alle velden in (geplande batchgrootte, gemeten vet, gewenst vet en vetgehalte toevoeging) om de afwijkende inhoud te berekenen.</p>';
     }
   }
