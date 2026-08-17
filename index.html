@@ -252,6 +252,8 @@
       cursor: pointer;
       transition: all 0.2s ease;
       white-space: nowrap;
+      width: 100%;
+      margin-top: 6px;
     }
     .btn-apply-batch:hover {
       background-color: var(--primary);
@@ -377,13 +379,13 @@
   <!-- 2. Gemeten vetgehalte batch -->
   <div class="form-group">
     <label for="currentFat">Gemeten vetgehalte batch (%):</label>
-    <input type="number" id="currentFat" placeholder="bijv. 28.4" step="0.01" oninput="calculate()">
+    <input type="number" id="currentFat" placeholder="bijv. 27.42" step="0.01" oninput="calculate()">
   </div>
 
   <!-- 3. Gewenst vetgehalte -->
   <div class="form-group">
     <label for="targetFat">Gewenst vetgehalte (%):</label>
-    <input type="number" id="targetFat" placeholder="bijv. 30.0" step="0.01" oninput="calculate()">
+    <input type="number" id="targetFat" placeholder="bijv. 30.00" step="0.01" oninput="calculate()">
   </div>
 
   <!-- Keuzevak Vermoedelijke Oorzaak -->
@@ -402,7 +404,7 @@
   <!-- 4. Vetgehalte toe te voegen room/vet -->
   <div class="form-group" id="creamFatGroup">
     <label id="creamFatLabel" for="creamFat">Vetgehalte toe te voegen room (%):</label>
-    <input type="number" id="creamFat" placeholder="bijv. 43.0" step="0.01" oninput="calculate()">
+    <input type="number" id="creamFat" placeholder="bijv. 43.00" step="0.01" oninput="calculate()">
   </div>
 
   <!-- Gecombineerde Tabbladen & Resultaat Sectie -->
@@ -418,10 +420,10 @@
         <!-- Foutmelding / Waarschuwing bovenaan -->
         <div id="errorSection"></div>
 
-        <!-- Vermoedelijke werkelijke batchgrootte met knop -->
-        <div class="result-row" style="align-items: center; margin-bottom: 12px;">
-          <div>
-            <span style="display: block; font-size: 0.85rem; color: #555;">Vermoedelijke werkelijke batchgrootte:</span>
+        <!-- Vermoedelijke werkelijke batchgrootte met knop op nieuwe regel -->
+        <div style="margin-bottom: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 0.85rem; color: #555;">Vermoedelijke werkelijke batchgrootte:</span>
             <span id="actualBatchValue" class="result-value" style="font-size: 1.1rem; color: var(--primary);">0 kg</span>
           </div>
           <button type="button" class="btn-apply-batch" onclick="updateBatchSizeFromCalculated()" title="Overnemen als geplande batchgrootte">
