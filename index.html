@@ -370,16 +370,16 @@
     <input type="number" id="targetFat" placeholder="bijv. 30.00" step="0.01" oninput="calculate()">
   </div>
 
-  <!-- Keuzevak Vermoedelijke Oorzaak -->
+  <!-- Keuzevak Oorzaak afwijking -->
   <div class="form-group">
-    <label for="missingComponent">Vermoedelijke oorzaak afwijking:</label>
+    <label for="missingComponent">Oorzaak afwijking:</label>
     <select id="missingComponent" onchange="onCauseChange()">
-      <option value="cream_less">Er is te weinig room gedoseerd</option>
-      <option value="cream_more">Er is te veel room gedoseerd</option>
-      <option value="fat_less">Er is te weinig vloeibaar vet gedoseerd</option>
-      <option value="fat_more">Er is te veel vloeibaar vet gedoseerd</option>
-      <option value="water_less">Er is te weinig water gedoseerd</option>
-      <option value="water_more">Er is te veel water gedoseerd</option>
+      <option value="cream_less">Te weinig room gedoseerd</option>
+      <option value="cream_more">Te veel room gedoseerd</option>
+      <option value="fat_less">Te weinig vloeibaar vet gedoseerd</option>
+      <option value="fat_more">Te veel vloeibaar vet gedoseerd</option>
+      <option value="water_less">Te weinig water gedoseerd</option>
+      <option value="water_more">Te veel water gedoseerd</option>
     </select>
   </div>
 
@@ -584,7 +584,7 @@
           <div class="error-box">
             <strong>⚠️ Onmogelijke combinatie!</strong><br>
             Als ${oorzaakTekst} is gedoseerd, moet het gemeten vetgehalte <strong>hoger</strong> zijn dan het gewenste vetgehalte (${targetFat}%).<br><br>
-            Het gemeten vetgehalte is nu <strong>${currentFat}%</strong> (te laag). Kies een andere oorzaak, zoals <em>"te weinig room"</em> of <em>"te veel water"</em>.
+            Het gemeten vetgehalte is nu <strong>${currentFat}%</strong> (te laag). Kies een andere oorzaak, zoals <em>"Te weinig room"</em> of <em>"Te veel water"</em>.
           </div>`;
       } else if (isLessCause && currentFat > targetFat) {
         hasError = true;
@@ -594,7 +594,7 @@
           <div class="error-box">
             <strong>⚠️ Onmogelijke combinatie!</strong><br>
             Als ${oorzaakTekst} is gedoseerd, moet het gemeten vetgehalte <strong>lager</strong> zijn dan het gewenste vetgehalte (${targetFat}%).<br><br>
-            Het gemeten vetgehalte is nu <strong>${currentFat}%</strong> (te hoog). Kies een andere oorzaak, zoals <em>"te veel room"</em> of <em>"te weinig water"</em>.
+            Het gemeten vetgehalte is nu <strong>${currentFat}%</strong> (te hoog). Kies een andere oorzaak, zoals <em>"Te veel room"</em> of <em>"Te weinig water"</em>.
           </div>`;
       } else if (currentFat < targetFat && additionType === 'cream' && effectiveCreamFat <= targetFat && effectiveCreamFat > 0) {
         hasError = true;
@@ -730,7 +730,7 @@
         actualBatchValueEl.innerText = Math.round(actualTotal) + ' kg';
       }
 
-      // Details-weergave op tabblad Berekening (zonder de knop onderaan)
+      // Details-weergave op tabblad Berekening
       detailsEl.innerHTML = `
         <div class="result-row">
           <span>Geplande hoeveelheid water:</span>
