@@ -352,19 +352,23 @@
     <input type="number" id="targetFat" placeholder="bijv. 30.0" step="0.01" oninput="calculate()">
   </div>
 
-  <!-- Keuzevak Toevoeging -->
+  <!-- Keuzevak Vermoedelijke Oorzaak (voorheen Toevoeging Kiezen) -->
   <div class="form-group">
-    <label for="additionType">Toevoeging kiezen:</label>
-    <select id="additionType" onchange="toggleAdditionType()">
-      <option value="cream">Room</option>
-      <option value="fat">Vloeibaar vet (olie/palmolie 100%)</option>
+    <label for="missingComponent">Vermoedelijke oorzaak afwijking:</label>
+    <select id="missingComponent" onchange="onCauseChange()">
+      <option value="cream_less">Er is te weinig room gedoseerd</option>
+      <option value="cream_more">Er is te veel room gedoseerd</option>
+      <option value="fat_less">Er is te weinig vloeibaar vet gedoseerd</option>
+      <option value="fat_more">Er is te veel vloeibaar vet gedoseerd</option>
+      <option value="water_less">Er is te weinig water gedoseerd</option>
+      <option value="water_more">Er is te veel water gedoseerd</option>
     </select>
   </div>
 
-  <!-- 4. Vetgehalte toe te voegen room/vet -->
-  <div class="form-group">
+  <!-- 4. Vetgehalte toe te voegen room/vet (verborgen bij vet of water) -->
+  <div class="form-group" id="creamFatGroup">
     <label id="creamFatLabel" for="creamFat">Vetgehalte toe te voegen room (%):</label>
-    <input type="number" id="creamFat" placeholder="bijv. 43.0" step="0.01" oninput="onCreamFatInput()">
+    <input type="number" id="creamFat" placeholder="bijv. 43.0" step="0.01" oninput="calculate()">
   </div>
 
   <!-- Gecombineerde Tabbladen & Resultaat Sectie -->
@@ -401,17 +405,6 @@
 
       <!-- Tab 3: Werkelijke Batch Inhoud -->
       <div id="tab-afwijkend" class="tab-content">
-        <div class="form-group" style="margin-bottom: 12px;">
-          <label for="missingComponent" style="font-size:0.85rem;">Vermoedelijke oorzaak afwijking:</label>
-          <select id="missingComponent" onchange="onMissingComponentChange()" style="padding: 8px; font-size:0.9rem;">
-            <option value="cream_less">Er is te weinig room gedoseerd</option>
-            <option value="cream_more">Er is te veel room gedoseerd</option>
-            <option value="fat_less">Er is te weinig vloeibaar vet gedoseerd</option>
-            <option value="fat_more">Er is te veel vloeibaar vet gedoseerd</option>
-            <option value="water_less">Er is te weinig water gedoseerd</option>
-            <option value="water_more">Er is te veel water gedoseerd</option>
-          </select>
-        </div>
         <div id="deviationResults">
           <p style="margin:0; font-style:italic; color:#666;">Vul de gegevens in om de vermoedelijke batchinhoud te berekenen.</p>
         </div>
@@ -437,7 +430,6 @@
 
 <script>
   let computedActualTotal = 0;
-  let savedCreamFat = '';
 
   function toggleBatchTooltip() {
     const tooltip = document.getElementById('batchTooltip');
@@ -458,51 +450,23 @@
     document.getElementById(tabId).classList.add('active');
   }
 
-  function onCreamFatInput() {
-    const additionType = document.getElementById('additionType').value;
-    if (additionType === 'cream') {
-      savedCreamFat = document.getElementById('creamFat').value;
-    }
-    calculate();
-  }
-
-  function toggleAdditionType() {
-    const additionType = document.getElementById('additionType').value;
-    const creamFatInput = document.getElementById('creamFat');
-    const creamFatLabel = document.getElementById('creamFatLabel');
+  function onCauseChange() {
+    const cause = document.getElementById('missingComponent').value;
+    const creamFatGroup = document.getElementById('creamFatGroup');
     const addLabel = document.getElementById('addLabel');
 
-    if (additionType === 'fat') {
-      creamFatInput.value = '100';
-      creamFatInput.disabled = true;
-      creamFatLabel.innerText = 'Vetgehalte toe te voegen vloeibaar vet (%):';
-      addLabel.innerText = 'Hoeveelheid vloeibaar vet toevoegen:';
-    } else {
-      creamFatInput.value = savedCreamFat;
-      creamFatInput.placeholder = 'bijv. 43.0';
-      creamFatLabel.innerText = 'Vetgehalte toe te voegen room (%):';
+    if (cause.startsWith('cream')) {
+      creamFatGroup.style.display = 'block';
       addLabel.innerText = 'Hoeveelheid room toevoegen:';
-      
-      const currentFat = parseFloat(document.getElementById('currentFat').value) || 0;
-      const targetFat = parseFloat(document.getElementById('targetFat').value) || 0;
-      creamFatInput.disabled = (targetFat <= currentFat && targetFat > 0);
+    } else if (cause.startsWith('fat')) {
+      creamFatGroup.style.display = 'none';
+      addLabel.innerText = 'Hoeveelheid vloeibaar vet toevoegen:';
+    } else { // water_less of water_more
+      creamFatGroup.style.display = 'none';
+      addLabel.innerText = 'Hoeveelheid room/vet toevoegen:';
     }
+
     calculate();
-  }
-
-  function onMissingComponentChange() {
-    const missingComponent = document.getElementById('missingComponent').value;
-    const additionTypeSelect = document.getElementById('additionType');
-
-    if ((missingComponent === 'fat_less' || missingComponent === 'fat_more') && additionTypeSelect.value !== 'fat') {
-      additionTypeSelect.value = 'fat';
-      toggleAdditionType();
-    } else if ((missingComponent === 'cream_less' || missingComponent === 'cream_more') && additionTypeSelect.value !== 'cream') {
-      additionTypeSelect.value = 'cream';
-      toggleAdditionType();
-    } else {
-      calculate();
-    }
   }
 
   function updateBatchSizeFromCalculated() {
@@ -516,43 +480,28 @@
     document.getElementById('batchSize').value = '';
     document.getElementById('currentFat').value = '';
     document.getElementById('targetFat').value = '';
-    
-    savedCreamFat = '';
-    const creamFatInput = document.getElementById('creamFat');
-    creamFatInput.value = '';
-    creamFatInput.disabled = false;
-    
-    const additionTypeSelect = document.getElementById('additionType');
-    additionTypeSelect.value = 'cream';
-    additionTypeSelect.disabled = false;
-
+    document.getElementById('creamFat').value = '';
     document.getElementById('missingComponent').value = 'cream_less';
     
-    toggleAdditionType();
+    onCauseChange();
   }
 
   function calculate() {
     const batchSize = parseFloat(document.getElementById('batchSize').value) || 0;
     const currentFat = parseFloat(document.getElementById('currentFat').value) || 0;
     const targetFat = parseFloat(document.getElementById('targetFat').value) || 0;
-    const additionTypeSelect = document.getElementById('additionType');
-    const creamFatInput = document.getElementById('creamFat');
-    const additionType = additionTypeSelect.value;
     const missingComponent = document.getElementById('missingComponent').value;
 
-    if (currentFat > targetFat && targetFat > 0) {
-      additionTypeSelect.disabled = true;
-      creamFatInput.disabled = true;
-    } else {
-      additionTypeSelect.disabled = false;
-      if (additionType === 'fat') {
-        creamFatInput.disabled = true;
-      } else {
-        creamFatInput.disabled = false;
-      }
+    let additionType = 'cream';
+    let effectiveCreamFat = parseFloat(document.getElementById('creamFat').value) || 0;
+
+    if (missingComponent.startsWith('fat')) {
+      additionType = 'fat';
+      effectiveCreamFat = 100;
+    } else if (missingComponent.startsWith('water')) {
+      additionType = 'water';
     }
 
-    const creamFat = parseFloat(creamFatInput.value) || 0;
     const rowAddIngredient = document.getElementById('rowAddIngredient');
     const rowAddWater = document.getElementById('rowAddWater');
 
@@ -566,11 +515,11 @@
       rowAddIngredient.style.display = 'flex';
       rowAddWater.style.display = 'none';
 
-      if (creamFat > targetFat) {
-        addAmount = ((targetFat - currentFat) / (creamFat - targetFat)) * batchSize;
+      if (effectiveCreamFat > targetFat) {
+        addAmount = ((targetFat - currentFat) / (effectiveCreamFat - targetFat)) * batchSize;
         
         const currentFatKg = (batchSize * currentFat) / 100;
-        const addFatKg = (addAmount * creamFat) / 100;
+        const addFatKg = (addAmount * effectiveCreamFat) / 100;
         const totalFatKgVal = currentFatKg + addFatKg;
         const totalBatchVal = batchSize + addAmount;
 
@@ -578,9 +527,9 @@
           <div class="calc-step"><strong>Stap 1: Huidige hoeveelheid vet</strong><br>
           ${batchSize} kg × ${currentFat.toFixed(2)}% = ${currentFatKg.toFixed(2)} kg vet</div>
           <div class="calc-step"><strong>Stap 2: Benodigde ${ingredientName} berekenen</strong><br>
-          (${targetFat.toFixed(2)}% - ${currentFat.toFixed(2)}%) / (${creamFat.toFixed(2)}% - ${targetFat.toFixed(2)}%) × ${batchSize} kg = <strong>${Math.round(addAmount)} kg ${ingredientName}</strong></div>
+          (${targetFat.toFixed(2)}% - ${currentFat.toFixed(2)}%) / (${effectiveCreamFat.toFixed(2)}% - ${targetFat.toFixed(2)}%) × ${batchSize} kg = <strong>${Math.round(addAmount)} kg ${ingredientName}</strong></div>
           <div class="calc-step"><strong>Stap 3: Vet uit toevoeging</strong><br>
-          ${Math.round(addAmount)} kg × ${creamFat.toFixed(2)}% = ${addFatKg.toFixed(2)} kg vet</div>
+          ${Math.round(addAmount)} kg × ${effectiveCreamFat.toFixed(2)}% = ${addFatKg.toFixed(2)} kg vet</div>
           <div class="calc-step"><strong>Stap 4: Totale batch & vet</strong><br>
           Totale batch na correctie: ${batchSize} kg + ${Math.round(addAmount)} kg = <strong>${Math.round(totalBatchVal)} kg</strong><br>
           Totaal vet: ${currentFatKg.toFixed(2)} kg + ${addFatKg.toFixed(2)} kg = <strong>${Math.round(totalFatKgVal)} kg vet</strong></div>
@@ -624,19 +573,16 @@
     // BEREKENING TAB 3
     const devContainer = document.getElementById('deviationResults');
 
-    if (batchSize > 0 && currentFat > 0 && targetFat > 0 && creamFat > 0) {
+    if (batchSize > 0 && currentFat > 0 && targetFat > 0 && (effectiveCreamFat > 0 || missingComponent.startsWith('water'))) {
       let devIngredientLabel = ingredientName;
-      let effectiveCreamFat = creamFat;
+      let calcCreamFat = effectiveCreamFat;
 
-      if (missingComponent.startsWith('fat')) {
-        devIngredientLabel = 'vloeibaar vet';
-        effectiveCreamFat = 100;
-      } else if (missingComponent.startsWith('cream')) {
-        devIngredientLabel = 'room';
+      if (missingComponent.startsWith('water') && calcCreamFat === 0) {
+        calcCreamFat = 43; // standaard valback voor berekening als er geen vetgehalte is ingevuld
       }
 
       const targetFatKgPlanned = (batchSize * targetFat) / 100;
-      const plannedIngredient = (targetFatKgPlanned / effectiveCreamFat) * 100;
+      const plannedIngredient = (targetFatKgPlanned / calcCreamFat) * 100;
       const plannedWater = batchSize - plannedIngredient;
 
       let actualIngredient = 0;
@@ -645,12 +591,12 @@
 
       if (missingComponent === 'cream_less' || missingComponent === 'cream_more' || missingComponent === 'fat_less' || missingComponent === 'fat_more') {
         actualWater = plannedWater;
-        const ingredientFraction = currentFat / effectiveCreamFat;
+        const ingredientFraction = currentFat / calcCreamFat;
         actualTotal = actualWater / (1 - ingredientFraction);
         actualIngredient = actualTotal - actualWater;
       } else {
         actualIngredient = plannedIngredient;
-        const totalFatKgActual = (actualIngredient * effectiveCreamFat) / 100;
+        const totalFatKgActual = (actualIngredient * calcCreamFat) / 100;
         actualTotal = (totalFatKgActual / currentFat) * 100;
         actualWater = actualTotal - actualIngredient;
       }
@@ -661,7 +607,6 @@
       const diffIngredient = actualIngredient - plannedIngredient;
       const diffWater = actualWater - plannedWater;
 
-      // Kleur- en tekstbepaling (afwijkend = rood, goed/geen afwijking = groen)
       const colorIngredient = Math.abs(diffIngredient) < 0.5 ? '#27ae60' : '#c0392b';
       const colorWater = Math.abs(diffWater) < 0.5 ? '#27ae60' : '#c0392b';
       const colorTotal = Math.abs(diffTotal) < 0.5 ? '#27ae60' : '#c0392b';
@@ -702,9 +647,14 @@
       `;
     } else {
       computedActualTotal = 0;
-      devContainer.innerHTML = '<p style="margin:0; font-style:italic; color:#666;">Vul alle velden in (geplande batchgrootte, gemeten vet, gewenst vet en vetgehalte toevoeging) om de afwijkende inhoud te berekenen.</p>';
+      devContainer.innerHTML = '<p style="margin:0; font-style:italic; color:#666;">Vul alle vereiste velden in om de vermoedelijke inhoud te berekenen.</p>';
     }
   }
+
+  // Initialisatie bij het laden van de pagina
+  window.addEventListener('DOMContentLoaded', () => {
+    onCauseChange();
+  });
 
   let deferredPrompt;
   const installBtn = document.getElementById('installBtn');
