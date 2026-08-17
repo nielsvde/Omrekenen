@@ -225,6 +225,17 @@
       color: #000;
     }
 
+    /* Error alert box */
+    .error-box {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      line-height: 1.4;
+    }
+
     /* Actieknop binnen tab content */
     .btn-update-batch {
       width: 100%;
@@ -352,7 +363,7 @@
     <input type="number" id="targetFat" placeholder="bijv. 30.0" step="0.01" oninput="calculate()">
   </div>
 
-  <!-- Keuzevak Vermoedelijke Oorzaak (voorheen Toevoeging Kiezen) -->
+  <!-- Keuzevak Vermoedelijke Oorzaak -->
   <div class="form-group">
     <label for="missingComponent">Vermoedelijke oorzaak afwijking:</label>
     <select id="missingComponent" onchange="onCauseChange()">
@@ -365,7 +376,7 @@
     </select>
   </div>
 
-  <!-- 4. Vetgehalte toe te voegen room/vet (verborgen bij vet of water) -->
+  <!-- 4. Vetgehalte toe te voegen room/vet -->
   <div class="form-group" id="creamFatGroup">
     <label id="creamFatLabel" for="creamFat">Vetgehalte toe te voegen room (%):</label>
     <input type="number" id="creamFat" placeholder="bijv. 43.0" step="0.01" oninput="calculate()">
@@ -570,15 +581,46 @@
 
     document.getElementById('calcSteps').innerHTML = stepsHtml;
 
-    // BEREKENING TAB 3
+    // BEREKENING TAB 3 (Werkelijke Batch Inhoud + Logica Controle)
     const devContainer = document.getElementById('deviationResults');
 
     if (batchSize > 0 && currentFat > 0 && targetFat > 0 && (effectiveCreamFat > 0 || missingComponent.startsWith('water'))) {
+      
+      // Controle op tegenstrijdige keuzes
+      const isMoreCause = (missingComponent === 'cream_more' || missingComponent === 'fat_more' || missingComponent === 'water_less');
+      const isLessCause = (missingComponent === 'cream_less' || missingComponent === 'fat_less' || missingComponent === 'water_more');
+
+      if (isMoreCause && currentFat < targetFat) {
+        computedActualTotal = 0;
+        let oorzaakTekst = "er te veel room/vet" ;
+        if (missingComponent === 'water_less') oorzaakTekst = "er te weinig water";
+        devContainer.innerHTML = `
+          <div class="error-box">
+            <strong>⚠️ Onmogelijke combinatie!</strong><br>
+            Als ${oorzaakTekst} is gedoseerd, moet het gemeten vetgehalte <strong>hoger</strong> zijn dan het gewenste vetgehalte (${targetFat}%).<br><br>
+            Het gemeten vetgehalte is nu <strong>${currentFat}%</strong> (te laag). Kies een andere oorzaak, zoals <em>"te weinig room"</em> of <em>"te veel water"</em>.
+          </div>`;
+        return;
+      }
+
+      if (isLessCause && currentFat > targetFat) {
+        computedActualTotal = 0;
+        let oorzaakTekst = "er te weinig room/vet";
+        if (missingComponent === 'water_more') oorzaakTekst = "er te veel water";
+        devContainer.innerHTML = `
+          <div class="error-box">
+            <strong>⚠️ Onmogelijke combinatie!</strong><br>
+            Als ${oorzaakTekst} is gedoseerd, moet het gemeten vetgehalte <strong>lager</strong> zijn dan het gewenste vetgehalte (${targetFat}%).<br><br>
+            Het gemeten vetgehalte is nu <strong>${currentFat}%</strong> (te hoog). Kies een andere oorzaak, zoals <em>"te veel room"</em> of <em>"te weinig water"</em>.
+          </div>`;
+        return;
+      }
+
       let devIngredientLabel = ingredientName;
       let calcCreamFat = effectiveCreamFat;
 
       if (missingComponent.startsWith('water') && calcCreamFat === 0) {
-        calcCreamFat = 43; // standaard valback voor berekening als er geen vetgehalte is ingevuld
+        calcCreamFat = 43; // standaard fallback als er geen vetgehalte is ingevuld bij water
       }
 
       const targetFatKgPlanned = (batchSize * targetFat) / 100;
