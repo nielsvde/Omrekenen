@@ -48,13 +48,19 @@
       }
     }
     
-    /* Geoptimaliseerde CSS voor de PNG header elementen */
+    /* Geoptimaliseerde CSS voor de PNG header elementen + Reset Knop */
     .header-container {
       display: flex;
       align-items: center;
-      gap: 15px;
+      justify-content: space-between;
+      gap: 12px;
       margin-bottom: 24px;
       text-align: left;
+    }
+    .header-branding {
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
     .header-logo {
       height: 48px;
@@ -68,6 +74,26 @@
       width: auto;
       display: block;
       object-fit: contain;
+    }
+    .btn-reset-header {
+      background: #f1f3f5;
+      border: 1px solid #ced4da;
+      color: #495057;
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+    .btn-reset-header:hover {
+      background: #e9ecef;
+      color: #212529;
+      border-color: #adb5bd;
     }
 
     .form-group {
@@ -291,10 +317,15 @@
 <body>
 
 <div class="card">
-  <!-- Header: logo.png en logotekst.png naast elkaar -->
+  <!-- Header: logo, logotekst en resetknop rechts -->
   <div class="header-container">
-    <img src="logo.png" alt="Logo" class="header-logo">
-    <img src="logotekst.png" alt="Product correctie calculator" class="header-text-img">
+    <div class="header-branding">
+      <img src="logo.png" alt="Logo" class="header-logo">
+      <img src="logotekst.png" alt="Product correctie calculator" class="header-text-img">
+    </div>
+    <button type="button" class="btn-reset-header" onclick="resetCalculator()" title="Wis alle invoer">
+      ↺ Reset
+    </button>
   </div>
   
   <!-- 1. Grootte batch -->
@@ -333,7 +364,7 @@
   <!-- 4. Vetgehalte toe te voegen room/vet -->
   <div class="form-group">
     <label id="creamFatLabel" for="creamFat">Vetgehalte toe te voegen room (%):</label>
-    <input type="number" id="creamFat" placeholder="bijv. 43.0" step="0.01" oninput="calculate()">
+    <input type="number" id="creamFat" placeholder="bijv. 43.0" step="0.01" oninput="onCreamFatInput()">
   </div>
 
   <!-- Gecombineerde Tabbladen & Resultaat Sectie -->
@@ -403,6 +434,7 @@
 
 <script>
   let computedActualTotal = 0;
+  let savedCreamFat = ''; // Onthoudt het ingevulde vetgehalte voor room
 
   function toggleBatchTooltip() {
     const tooltip = document.getElementById('batchTooltip');
@@ -423,6 +455,15 @@
     document.getElementById(tabId).classList.add('active');
   }
 
+  // Slaat het ingevoerde vetgehalte op als room actief is
+  function onCreamFatInput() {
+    const additionType = document.getElementById('additionType').value;
+    if (additionType === 'cream') {
+      savedCreamFat = document.getElementById('creamFat').value;
+    }
+    calculate();
+  }
+
   function toggleAdditionType() {
     const additionType = document.getElementById('additionType').value;
     const creamFatInput = document.getElementById('creamFat');
@@ -435,10 +476,9 @@
       creamFatLabel.innerText = 'Vetgehalte toe te voegen vloeibaar vet (%):';
       addLabel.innerText = 'Hoeveelheid vloeibaar vet toevoegen:';
     } else {
-      if (creamFatInput.value === '100') {
-        creamFatInput.value = '';
-      }
-      creamFatInput.placeholder = 'bijv. 43.00';
+      // Herstel de opgeslagen waarde van room als die er is
+      creamFatInput.value = savedCreamFat;
+      creamFatInput.placeholder = 'bijv. 43.0';
       creamFatLabel.innerText = 'Vetgehalte toe te voegen room (%):';
       addLabel.innerText = 'Hoeveelheid room toevoegen:';
       
@@ -469,6 +509,26 @@
       document.getElementById('batchSize').value = Math.round(computedActualTotal);
       calculate();
     }
+  }
+
+  // Reset alle invoervelden en variabelen
+  function resetCalculator() {
+    document.getElementById('batchSize').value = '';
+    document.getElementById('currentFat').value = '';
+    document.getElementById('targetFat').value = '';
+    
+    savedCreamFat = '';
+    const creamFatInput = document.getElementById('creamFat');
+    creamFatInput.value = '';
+    creamFatInput.disabled = false;
+    
+    const additionTypeSelect = document.getElementById('additionType');
+    additionTypeSelect.value = 'cream';
+    additionTypeSelect.disabled = false;
+
+    document.getElementById('missingComponent').value = 'cream';
+    
+    toggleAdditionType();
   }
 
   function calculate() {
