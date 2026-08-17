@@ -130,18 +130,18 @@
     }
     .tab-buttons {
       display: flex;
-      gap: 6px;
+      gap: 4px;
       margin-bottom: -1px;
       position: relative;
       z-index: 1;
     }
     .tab-btn {
       flex: 1;
-      padding: 10px 12px;
+      padding: 10px 6px;
       border: 1px solid var(--border-blue);
       border-bottom: none;
       background: #e1eeef;
-      font-size: 0.9rem;
+      font-size: 0.82rem;
       font-weight: 600;
       color: #555;
       cursor: pointer;
@@ -282,25 +282,25 @@
   <!-- 1. Grootte batch -->
   <div class="form-group">
     <div class="label-container">
-      <label for="batchSize">Grootte batch (kg):</label>
+      <label for="batchSize">Geplande batchgrootte (kg):</label>
       <span class="info-icon" onclick="toggleBatchTooltip()" title="Klik voor meer informatie">?</span>
     </div>
-    <input type="number" id="batchSize" placeholder="bijv. 1000" step="1" oninput="calculate()">
+    <input type="number" id="batchSize" placeholder="bijv. 4210" step="1" oninput="calculate()">
     <div id="batchTooltip" class="info-tooltip">
-      <strong>Let op:</strong> De huidige batchgrootte kan afwijken van recept, als er een grondstof (water, room, vet) niet juist of volledig gedoseerd is!
+      <strong>Let op:</strong> De werkelijke batchgrootte in de tank kan afwijken van het recept als er een grondstof niet juist of onvolledig gedoseerd is!
     </div>
   </div>
 
   <!-- 2. Gemeten vetgehalte batch -->
   <div class="form-group">
     <label for="currentFat">Gemeten vetgehalte batch (%):</label>
-    <input type="number" id="currentFat" placeholder="bijv. 28,00" step="0.01" oninput="calculate()">
+    <input type="number" id="currentFat" placeholder="bijv. 28.4" step="0.01" oninput="calculate()">
   </div>
 
   <!-- 3. Gewenst vetgehalte -->
   <div class="form-group">
     <label for="targetFat">Gewenst vetgehalte (%):</label>
-    <input type="number" id="targetFat" placeholder="bijv. 30,00" step="0.01" oninput="calculate()">
+    <input type="number" id="targetFat" placeholder="bijv. 30.0" step="0.01" oninput="calculate()">
   </div>
 
   <!-- Keuzevak Toevoeging -->
@@ -315,7 +315,7 @@
   <!-- 4. Vetgehalte toe te voegen room/vet -->
   <div class="form-group">
     <label id="creamFatLabel" for="creamFat">Vetgehalte toe te voegen room (%):</label>
-    <input type="number" id="creamFat" placeholder="bijv. 43,00" step="0.01" oninput="calculate()">
+    <input type="number" id="creamFat" placeholder="bijv. 43.0" step="0.01" oninput="calculate()">
   </div>
 
   <!-- Gecombineerde Tabbladen & Resultaat Sectie -->
@@ -323,6 +323,7 @@
     <div class="tab-buttons">
       <button class="tab-btn active" onclick="switchTab('tab-resultat')">Resultaat</button>
       <button class="tab-btn" onclick="switchTab('tab-berekening')">Berekening</button>
+      <button class="tab-btn" onclick="switchTab('tab-afwijkend')">Afwijkende Batch</button>
     </div>
 
     <div class="tab-content-container">
@@ -346,6 +347,20 @@
       <div id="tab-berekening" class="tab-content">
         <div id="calcSteps">
           <p style="margin:0; font-style:italic; color:#666;">Vul de gegevens in om de berekening in stappen te zien.</p>
+        </div>
+      </div>
+
+      <!-- Tab 3: Afwijkende Batch Inhoud -->
+      <div id="tab-afwijkend" class="tab-content">
+        <div class="form-group" style="margin-bottom: 12px;">
+          <label for="missingComponent" style="font-size:0.85rem;">Vermoedelijke oorzaak afwijking:</label>
+          <select id="missingComponent" onchange="calculate()" style="padding: 8px; font-size:0.9rem;">
+            <option value="ingredient">Er is te weinig room/vet gedoseerd</option>
+            <option value="water">Er is te weinig water gedoseerd</option>
+          </select>
+        </div>
+        <div id="deviationResults">
+          <p style="margin:0; font-style:italic; color:#666;">Vul de gegevens in om de vermoedelijke batchinhoud te berekenen.</p>
         </div>
       </div>
     </div>
@@ -379,8 +394,10 @@
 
     if (tabId === 'tab-resultat') {
       document.querySelectorAll('.tab-btn')[0].classList.add('active');
-    } else {
+    } else if (tabId === 'tab-berekening') {
       document.querySelectorAll('.tab-btn')[1].classList.add('active');
+    } else {
+      document.querySelectorAll('.tab-btn')[2].classList.add('active');
     }
     document.getElementById(tabId).classList.add('active');
   }
@@ -398,7 +415,7 @@
       addLabel.innerText = 'Hoeveelheid vloeibaar vet toevoegen:';
     } else {
       creamFatInput.value = '';
-      creamFatInput.placeholder = 'bijv. 43,00';
+      creamFatInput.placeholder = 'bijv. 43.00';
       creamFatLabel.innerText = 'Vetgehalte toe te voegen room (%):';
       addLabel.innerText = 'Hoeveelheid room toevoegen:';
       
@@ -416,6 +433,7 @@
     const additionTypeSelect = document.getElementById('additionType');
     const creamFatInput = document.getElementById('creamFat');
     const additionType = additionTypeSelect.value;
+    const missingComponent = document.getElementById('missingComponent').value;
 
     if (currentFat > targetFat && targetFat > 0) {
       additionTypeSelect.disabled = true;
@@ -497,6 +515,69 @@
     document.getElementById('totalBatch').innerText = Math.round(totalBatch) + ' kg';
 
     document.getElementById('calcSteps').innerHTML = stepsHtml;
+
+    // --- BEREKENING TAB 3: AFWIJKENDE BATCH INHOUD ---
+    const devContainer = document.getElementById('deviationResults');
+    const ingredientLabel = additionType === 'fat' ? 'vloeibaar vet' : 'room';
+
+    if (batchSize > 0 && currentFat > 0 && targetFat > 0 && creamFat > 0) {
+      // Wat had het moeten zijn volgens recept?
+      const targetFatKgPlanned = (batchSize * targetFat) / 100;
+      const plannedIngredient = (targetFatKgPlanned / creamFat) * 100;
+      const plannedWater = batchSize - plannedIngredient;
+
+      let actualIngredient = 0;
+      let actualWater = 0;
+      let actualTotal = 0;
+
+      if (missingComponent === 'ingredient') {
+        // Water is correct gedoseerd, room/vet is te weinig
+        actualWater = plannedWater;
+        // Inhoud bestaat uit (currentFat / creamFat) deel room/vet
+        const ingredientFraction = currentFat / creamFat;
+        actualTotal = actualWater / (1 - ingredientFraction);
+        actualIngredient = actualTotal - actualWater;
+      } else {
+        // Room/vet is correct gedoseerd, water is te weinig
+        actualIngredient = plannedIngredient;
+        const totalFatKgActual = (actualIngredient * creamFat) / 100;
+        actualTotal = (totalFatKgActual / currentFat) * 100;
+        actualWater = actualTotal - actualIngredient;
+      }
+
+      const diffTotal = actualTotal - batchSize;
+      const diffIngredient = actualIngredient - plannedIngredient;
+
+      devContainer.innerHTML = `
+        <div class="result-row">
+          <span>Geplande hoeveelheid water:</span>
+          <span class="result-value">${Math.round(plannedWater)} kg</span>
+        </div>
+        <div class="result-row">
+          <span>Geplande hoeveelheid ${ingredientLabel}:</span>
+          <span class="result-value">${Math.round(plannedIngredient)} kg</span>
+        </div>
+        <hr style="border:0; border-top: 1px dashed var(--border-blue); margin: 8px 0;">
+        <div class="result-row">
+          <span>Werkelijk aanwezig water:</span>
+          <span class="result-value">${Math.round(actualWater)} kg</span>
+        </div>
+        <div class="result-row">
+          <span>Werkelijk aanwezige ${ingredientLabel}:</span>
+          <span class="result-value" style="color:${diffIngredient < 0 ? '#c0392b' : '#27ae60'}">${Math.round(actualIngredient)} kg (${Math.round(diffIngredient)} kg)</span>
+        </div>
+        <div class="result-row" style="margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border-blue);">
+          <span><strong>Vermoedelijke batchgrootte:</strong></span>
+          <span class="result-value" style="color:#000;"><strong>${Math.round(actualTotal)} kg</strong></span>
+        </div>
+        <div class="result-row">
+          <span>Verschil met gepland:</span>
+          <span class="result-value" style="color:${diffTotal < 0 ? '#c0392b' : '#27ae60'}">${Math.round(diffTotal)} kg</span>
+        </div>
+      `;
+    } else {
+      devContainer.innerHTML = '<p style="margin:0; font-style:italic; color:#666;">Vul alle velden in (geplande batchgrootte, gemeten vet, gewenst vet en vetgehalte toevoeging) om de afwijkende inhoud te berekenen.</p>';
+    }
   }
 
   let deferredPrompt;
