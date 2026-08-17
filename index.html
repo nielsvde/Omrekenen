@@ -4,112 +4,856 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Product correctie calculator</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" href="icon.png">
+  <link rel="apple-touch-icon" href="icon.png">
+  <meta name="theme-color" content="#007bff">
+  
   <style>
     :root {
       --primary: #007bff;
       --primary-hover: #0056b3;
       --bg: #f4f6f9;
       --card-bg: #ffffff;
+      --text: #333333;
       --card-blue-bg: #f0f7ff;
       --border-blue: #cce5ff;
     }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: var(--bg); padding: 12px; }
-    .card { background: var(--card-bg); padding: 20px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); max-width: 480px; margin: 0 auto; }
-    .form-group { margin-bottom: 16px; }
-    input, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; }
-    
-    .tab-buttons { display: flex; gap: 4px; margin-top: 20px; }
-    .tab-btn { flex: 1; padding: 10px; border: 1px solid var(--border-blue); background: #e1eeef; cursor: pointer; border-radius: 10px 10px 0 0; font-weight: 600; }
-    .tab-btn.active { background: var(--card-blue-bg); color: var(--primary); }
-    
-    .tab-content { display: none; background: var(--card-blue-bg); padding: 16px; border: 1px solid var(--border-blue); border-radius: 0 0 12px 12px; }
-    .tab-content.active { display: block; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 12px;
+      display: flex;
+      justify-content: center;
+    }
+    .card {
+      background: var(--card-bg);
+      padding: 20px 16px;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      width: 100%;
+      max-width: 480px;
+      box-sizing: border-box;
+      text-align: center;
+    }
 
-    .btn-apply-batch { background-color: #e7f1ff; border: 1px solid #b6d4fe; color: var(--primary-hover); padding: 8px; border-radius: 6px; cursor: pointer; width: 100%; margin-top: 10px; font-weight: 600; }
-    .btn-apply-batch:hover { background-color: var(--primary); color: #ffffff; }
+    @media (min-width: 480px) {
+      body {
+        padding: 20px;
+      }
+      .card {
+        padding: 24px;
+      }
+    }
+    
+    /* Header elementen + Reset Knop */
+    .header-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 24px;
+      text-align: left;
+    }
+    .header-branding {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .header-logo {
+      height: 48px;
+      width: auto;
+      display: block;
+      flex-shrink: 0;
+      object-fit: contain;
+    }
+    .header-text-img {
+      height: 38px;
+      width: auto;
+      display: block;
+      object-fit: contain;
+    }
+    .btn-reset-header {
+      background: #f1f3f5;
+      border: 1px solid #ced4da;
+      color: #495057;
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+    .btn-reset-header:hover {
+      background: #e9ecef;
+      color: #212529;
+      border-color: #adb5bd;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+      text-align: left;
+    }
+    .label-container {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+    label {
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+    .info-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      background-color: var(--primary);
+      color: white;
+      border-radius: 50%;
+      font-size: 0.75rem;
+      font-weight: bold;
+      cursor: pointer;
+      user-select: none;
+      flex-shrink: 0;
+    }
+    .info-tooltip {
+      display: none;
+      margin-top: 6px;
+      padding: 10px;
+      background-color: #fff3cd;
+      color: #856404;
+      border: 1px solid #ffeeba;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      line-height: 1.4;
+    }
+    input, select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 1rem;
+      box-sizing: border-box;
+      background-color: #fff;
+    }
+
+    /* Tabs & Resultatenblok */
+    .tabs-wrapper {
+      margin-top: 24px;
+    }
+    .tab-buttons {
+      display: flex;
+      gap: 4px;
+      margin-bottom: -1px;
+      position: relative;
+      z-index: 1;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 10px 4px;
+      border: 1px solid var(--border-blue);
+      border-bottom: none;
+      background: #e1eeef;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #555;
+      cursor: pointer;
+      border-radius: 10px 10px 0 0;
+      transition: all 0.2s ease;
+    }
+    .tab-btn.active {
+      background: var(--card-blue-bg);
+      color: var(--primary);
+      border-color: var(--border-blue);
+      font-weight: 700;
+    }
+
+    .tab-content-container {
+      background: var(--card-blue-bg);
+      border: 1px solid var(--border-blue);
+      border-radius: 0 0 12px 12px;
+      padding: 16px 14px;
+      text-align: left;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.02);
+    }
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+
+    .result-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 10px;
+      font-size: 0.92rem;
+    }
+    .result-row:last-child {
+      margin-bottom: 0;
+    }
+    .result-value {
+      font-weight: bold;
+      white-space: nowrap;
+    }
+
+    /* Koptekst voor secties binnen tabbladen */
+    .section-title {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-top: 0;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Berekening stappen styling */
+    .calc-step {
+      margin-bottom: 12px;
+      font-size: 0.88rem;
+      line-height: 1.4;
+      color: #333;
+    }
+    .calc-step:last-child {
+      margin-bottom: 0;
+    }
+
+    /* Error box op Tab 1 */
+    .error-box {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      line-height: 1.4;
+      margin-bottom: 14px;
+    }
+
+    /* Knop voor overnemen van batchgrootte */
+    .btn-apply-batch {
+      background-color: #e7f1ff;
+      border: 1px solid #b6d4fe;
+      color: var(--primary-hover);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+      width: 100%;
+      margin-top: 6px;
+    }
+    .btn-apply-batch:hover {
+      background-color: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+    }
+
+    /* Footer acties (Feedback / PWA) */
+    .footer-actions {
+      margin-top: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: center;
+    }
+    .feedback-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+      color: #6c757d;
+      text-decoration: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      transition: background-color 0.2s ease;
+    }
+    .feedback-link:hover {
+      background-color: #e9ecef;
+      color: var(--primary);
+    }
+
+    .btn-install {
+      display: none;
+      width: 100%;
+      padding: 12px;
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+    .btn-install:hover {
+      background-color: var(--primary-hover);
+    }
+    .ios-box {
+      display: none;
+      width: 100%;
+      padding: 12px;
+      background-color: #e9ecef;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      text-align: center;
+      line-height: 1.4;
+      box-sizing: border-box;
+    }
   </style>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').then((registration) => {
+          registration.update();
+        }).catch((err) => console.error('SW Error:', err));
+      });
+
+      let refreshing = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!refreshing) {
+          refreshing = true;
+          window.location.reload();
+        }
+      });
+    }
+  </script>
 </head>
 <body>
 
 <div class="card">
-  <h3>Product correctie calculator</h3>
+  <!-- Header: logo, logotekst en resetknop rechts -->
+  <div class="header-container">
+    <div class="header-branding">
+      <img src="logo.png" alt="Logo" class="header-logo">
+      <img src="logotekst.png" alt="Product correctie calculator" class="header-text-img">
+    </div>
+    <button type="button" class="btn-reset-header" onclick="resetCalculator()" title="Wis alle invoer">
+      ↺ Reset
+    </button>
+  </div>
   
+  <!-- 1. Grootte batch -->
   <div class="form-group">
-    <label>Geplande batchgrootte (kg):</label>
-    <input type="number" id="batchSize" oninput="calculate()">
+    <div class="label-container">
+      <label for="batchSize">Geplande batchgrootte (kg):</label>
+      <span class="info-icon" onclick="toggleBatchTooltip()" title="Klik voor meer informatie">?</span>
+    </div>
+    <input type="number" id="batchSize" placeholder="bijv. 4210" step="1" oninput="calculate()">
+    <div id="batchTooltip" class="info-tooltip">
+      <strong>Let op:</strong> De werkelijke batchgrootte in de tank kan afwijken van het recept als een grondstof niet juist of onvolledig gedoseerd is!
+    </div>
   </div>
 
+  <!-- 2. Gemeten vetgehalte batch -->
   <div class="form-group">
-    <label>Gemeten vetgehalte (%):</label>
-    <input type="number" id="currentFat" oninput="calculate()">
+    <label for="currentFat">Gemeten vetgehalte batch (%):</label>
+    <input type="number" id="currentFat" placeholder="bijv. 27.42" step="0.01" oninput="calculate()">
   </div>
 
+  <!-- 3. Gewenst vetgehalte -->
   <div class="form-group">
-    <label>Gewenst vetgehalte (%):</label>
-    <input type="number" id="targetFat" oninput="calculate()">
+    <label for="targetFat">Gewenst vetgehalte (%):</label>
+    <input type="number" id="targetFat" placeholder="bijv. 30.00" step="0.01" oninput="calculate()">
   </div>
 
+  <!-- Keuzevak Oorzaak afwijking -->
   <div class="form-group">
-    <label>Oorzaak afwijking:</label>
-    <select id="missingComponent" onchange="calculate()">
-      <option value="cream_less">Te weinig room</option>
-      <option value="fat_less">Te weinig vloeibaar vet</option>
+    <label for="missingComponent">Oorzaak afwijking:</label>
+    <select id="missingComponent" onchange="onCauseChange()">
+      <option value="cream_less">Te weinig room gedoseerd</option>
+      <option value="cream_more">Te veel room gedoseerd</option>
+      <option value="fat_less">Te weinig vloeibaar vet gedoseerd</option>
+      <option value="fat_more">Te veel vloeibaar vet gedoseerd</option>
+      <option value="water_less">Te weinig water gedoseerd</option>
+      <option value="water_more">Te veel water gedoseerd</option>
     </select>
   </div>
 
-  <div class="tab-buttons">
-    <button class="tab-btn active" id="btnTabResult" onclick="switchTab('tab-resultat')">Resultaat</button>
-    <button class="tab-btn" id="btnTabCalc" onclick="switchTab('tab-berekening')">Berekening</button>
+  <!-- 4. Vetgehalte toe te voegen room/vet -->
+  <div class="form-group" id="creamFatGroup">
+    <label id="creamFatLabel" for="creamFat">Vetgehalte toe te voegen room (%):</label>
+    <input type="number" id="creamFat" placeholder="bijv. 43.00" step="0.01" oninput="calculate()">
   </div>
 
-  <div class="tab-content active" id="tab-resultat">
-    <div style="font-size: 1.1rem;">Vermoedelijk: <span id="actualBatchValue">0</span> kg</div>
-    <button type="button" id="btnApply" class="btn-apply-batch" onclick="toggleBatchSizeState()">↺ Overnemen als geplande batch</button>
-    <div style="margin-top:15px">Toevoegen: <span id="addValue">0</span> kg</div>
+  <!-- Gecombineerde Tabbladen & Resultaat Sectie -->
+  <div class="tabs-wrapper">
+    <div class="tab-buttons">
+      <button class="tab-btn active" onclick="switchTab('tab-resultat')">Resultaat</button>
+      <button class="tab-btn" onclick="switchTab('tab-berekening')">Berekening</button>
+    </div>
+
+    <div class="tab-content-container">
+      <!-- Tab 1: Resultaat -->
+      <div id="tab-resultat" class="tab-content active">
+        <!-- Foutmelding / Waarschuwing bovenaan -->
+        <div id="errorSection"></div>
+
+        <!-- Vermoedelijke werkelijke batchgrootte met knop op nieuwe regel -->
+        <div style="margin-bottom: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span id="actualBatchLabel" style="font-size: 0.85rem; color: #555;">Vermoedelijke werkelijke batchgrootte:</span>
+            <span id="actualBatchValue" class="result-value" style="font-size: 1.1rem; color: var(--primary);">0 kg</span>
+          </div>
+          <button type="button" class="btn-apply-batch" onclick="toggleBatchSizeState()" title="Overnemen als geplande batchgrootte">
+            ↺ Overnemen als geplande batch
+          </button>
+        </div>
+
+        <hr style="border:0; border-top: 1px solid var(--border-blue); margin: 14px 0;">
+
+        <!-- Correctie resultaten -->
+        <div class="result-row" id="rowAddIngredient">
+          <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+            <span id="addLabel">Hoeveelheid room toevoegen:</span>
+            <span class="info-icon" onclick="toggleAddTooltip()" title="Klik voor meer informatie">?</span>
+          </div>
+          <span id="addValue" class="result-value">0 kg</span>
+        </div>
+        <!-- Tooltip voor toevoegen room/vet -->
+        <div id="addTooltip" class="info-tooltip" style="margin-bottom: 10px;">
+          <strong>Let op:</strong> 100% Room toevoegen zonder water inspoel!
+        </div>
+
+        <div class="result-row" id="rowAddWater">
+          <span>Hoeveelheid water toevoegen:</span>
+          <span id="waterToAdd" class="result-value">0 kg</span>
+        </div>
+        <div class="result-row" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border-blue);">
+          <span>Totale grootte batch na correctie:</span>
+          <span id="totalBatch" class="result-value">0 kg</span>
+        </div>
+      </div>
+
+      <!-- Tab 2: Berekening in stappen -->
+      <div id="tab-berekening" class="tab-content">
+        <!-- Sectie 1: Werkelijke batch details -->
+        <div class="section-title">1. Analyse werkelijke batch inhoud</div>
+        <div id="actualBatchDetails">
+          <p style="margin:0; font-style:italic; color:#666;">Vul de gegevens in om de werkelijke batchberekening te zien.</p>
+        </div>
+
+        <!-- Duidelijke scheidingslijn -->
+        <hr style="border:0; border-top: 2px dashed #b6d4fe; margin: 18px 0;">
+
+        <!-- Sectie 2: Stapsgewijze correctieberekening -->
+        <div class="section-title">2. Correctie berekening stappen</div>
+        <div id="calcSteps">
+          <p style="margin:0; font-style:italic; color:#666;">Vul de gegevens in om de berekening in stappen te zien.</p>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <div class="tab-content" id="tab-berekening">
-    <div id="calcSteps">Berekeningsdetails worden hier getoond...</div>
+  <!-- Footer Acties (Feedback & PWA) -->
+  <div class="footer-actions">
+    <a href="mailto:nielsvde@hotmail.com?subject=Feedback%20Correctie%20Calculator&body=Beste%20Niels,%0A%0AIk%20heb%20een%20vraag,%20tip%20of%20fout%20ontdekt%20in%20de%20Correctie%20Calculator:%0A%0A" class="feedback-link">
+      💡 Tip of fout melden
+    </a>
+
+    <!-- Installatieknop voor PWA -->
+    <button id="installBtn" class="btn-install">📲 Installeer app</button>
+    
+    <!-- Instructievenster voor iPhone/iPad -->
+    <div id="iosInstruction" class="ios-box">
+      Tik onderaan op het <strong>Deel-icoon</strong> <span style="font-size: 1.1rem;">⎋</span> en kies <strong>'Zet op home-scherm'</strong>.
+    </div>
   </div>
 </div>
 
 <script>
-  let isLockedToCalculated = false;
+  let computedActualTotal = 0;
+  let originalBatchSize = null;
+  let isApplied = false;
+
+  function toggleBatchTooltip() {
+    const tooltip = document.getElementById('batchTooltip');
+    tooltip.style.display = tooltip.style.display === 'block' ? 'none' : 'block';
+  }
+
+  function toggleAddTooltip() {
+    const tooltip = document.getElementById('addTooltip');
+    tooltip.style.display = tooltip.style.display === 'block' ? 'none' : 'block';
+  }
 
   function switchTab(tabId) {
-    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+    if (tabId === 'tab-resultat') {
+      document.querySelectorAll('.tab-btn')[0].classList.add('active');
+    } else {
+      document.querySelectorAll('.tab-btn')[1].classList.add('active');
+    }
     document.getElementById(tabId).classList.add('active');
-    document.getElementById(tabId === 'tab-resultat' ? 'btnTabResult' : 'btnTabCalc').classList.add('active');
+  }
+
+  function onCauseChange() {
+    const cause = document.getElementById('missingComponent').value;
+    const creamFatGroup = document.getElementById('creamFatGroup');
+    const addLabel = document.getElementById('addLabel');
+
+    if (cause.startsWith('cream')) {
+      creamFatGroup.style.display = 'block';
+      addLabel.innerText = 'Hoeveelheid room toevoegen:';
+    } else if (cause.startsWith('fat')) {
+      creamFatGroup.style.display = 'none';
+      addLabel.innerText = 'Hoeveelheid vloeibaar vet toevoegen:';
+    } else { // water_less of water_more
+      creamFatGroup.style.display = 'none';
+      addLabel.innerText = 'Hoeveelheid room/vet toevoegen:';
+    }
+
+    calculate();
   }
 
   function toggleBatchSizeState() {
     const batchInput = document.getElementById('batchSize');
-    isLockedToCalculated = !isLockedToCalculated;
-    
-    if (isLockedToCalculated) {
-      batchInput.value = Math.round(parseFloat(document.getElementById('actualBatchValue').innerText) || 0);
+
+    if (!isApplied) {
+      if (computedActualTotal > 0) {
+        originalBatchSize = parseFloat(batchInput.value) || 0;
+        batchInput.value = Math.round(computedActualTotal);
+        isApplied = true;
+        calculate();
+      }
+    } else {
+      if (originalBatchSize !== null) {
+        batchInput.value = originalBatchSize;
+        originalBatchSize = null;
+        isApplied = false;
+        calculate();
+      }
     }
+  }
+
+  function resetCalculator() {
+    document.getElementById('batchSize').value = '';
+    document.getElementById('currentFat').value = '';
+    document.getElementById('targetFat').value = '';
+    document.getElementById('creamFat').value = '';
+    document.getElementById('missingComponent').value = 'cream_less';
+
+    // Verberg tooltips bij reset
+    document.getElementById('batchTooltip').style.display = 'none';
+    document.getElementById('addTooltip').style.display = 'none';
+
+    originalBatchSize = null;
+    isApplied = false;
     
-    const btn = document.getElementById('btnApply');
-    btn.innerText = isLockedToCalculated ? '↺ Herstel handmatige invoer' : '↺ Overnemen als geplande batch';
-    calculate();
+    onCauseChange();
   }
 
   function calculate() {
-    const inputBatch = parseFloat(document.getElementById('batchSize').value) || 0;
+    const inputBatchSize = parseFloat(document.getElementById('batchSize').value) || 0;
     const currentFat = parseFloat(document.getElementById('currentFat').value) || 0;
     const targetFat = parseFloat(document.getElementById('targetFat').value) || 0;
-    
-    // Voorbeeld berekening
-    const actualBatch = inputBatch * 1.05; // Dummy logica voor voorbeeld
-    document.getElementById('actualBatchValue').innerText = Math.round(actualBatch);
-    
-    const addAmount = Math.max(0, (targetFat - currentFat) * (inputBatch / 100));
-    document.getElementById('addValue').innerText = Math.round(addAmount);
-    
-    document.getElementById('calcSteps').innerText = `Op basis van ${inputBatch}kg en ${currentFat}% vet, moet er ${addAmount}kg worden toegevoegd om ${targetFat}% te bereiken.`;
+    const missingComponent = document.getElementById('missingComponent').value;
+
+    // Bepaal de effectieve batchgrootte: gebruikt de nieuwe waarde als deze is overgenomen
+    const activeBatchSize = (isApplied && computedActualTotal > 0) ? Math.round(computedActualTotal) : inputBatchSize;
+
+    let additionType = 'cream';
+    let effectiveCreamFat = parseFloat(document.getElementById('creamFat').value) || 0;
+
+    if (missingComponent.startsWith('fat')) {
+      additionType = 'fat';
+      effectiveCreamFat = 100;
+    } else if (missingComponent.startsWith('water')) {
+      additionType = 'water';
+    }
+
+    const rowAddIngredient = document.getElementById('rowAddIngredient');
+    const rowAddWater = document.getElementById('rowAddWater');
+    const addTooltip = document.getElementById('addTooltip');
+    const errorSection = document.getElementById('errorSection');
+
+    let addAmount = 0;
+    let waterToAdd = 0;
+    let stepsHtml = '';
+
+    const ingredientName = additionType === 'fat' ? 'vloeibaar vet' : 'room';
+
+    // 1. CONTROLE OP TEGENSTRIJDIGE KEUZES EN ONGELDIG VETGEHALTE
+    const isMoreCause = (missingComponent === 'cream_more' || missingComponent === 'fat_more' || missingComponent === 'water_less');
+    const isLessCause = (missingComponent === 'cream_less' || missingComponent === 'fat_less' || missingComponent === 'water_more');
+
+    let hasError = false;
+
+    if (inputBatchSize > 0 && currentFat > 0 && targetFat > 0) {
+      if (isMoreCause && currentFat < targetFat) {
+        hasError = true;
+        let oorzaakTekst = "er te veel room/vet";
+        if (missingComponent === 'water_less') oorzaakTekst = "er te weinig water";
+        errorSection.innerHTML = `
+          <div class="error-box">
+            <strong>⚠️ Onmogelijke combinatie!</strong><br>
+            Als ${oorzaakTekst} is gedoseerd, moet het gemeten vetgehalte <strong>hoger</strong> zijn dan het gewenste vetgehalte (${targetFat}%).<br><br>
+            Het gemeten vetgehalte is nu <strong>${currentFat}%</strong> (te laag). Kies een andere oorzaak, zoals <em>"Te weinig room"</em> of <em>"Te veel water"</em>.
+          </div>`;
+      } else if (isLessCause && currentFat > targetFat) {
+        hasError = true;
+        let oorzaakTekst = "er te weinig room/vet";
+        if (missingComponent === 'water_more') oorzaakTekst = "er te veel water";
+        errorSection.innerHTML = `
+          <div class="error-box">
+            <strong>⚠️ Onmogelijke combinatie!</strong><br>
+            Als ${oorzaakTekst} is gedoseerd, moet het gemeten vetgehalte <strong>lager</strong> zijn dan het gewenste vetgehalte (${targetFat}%).<br><br>
+            Het gemeten vetgehalte is nu <strong>${currentFat}%</strong> (te hoog). Kies een andere oorzaak, zoals <em>"Te veel room"</em> of <em>"Te weinig water"</em>.
+          </div>`;
+      } else if (currentFat < targetFat && additionType === 'cream' && effectiveCreamFat <= targetFat && effectiveCreamFat > 0) {
+        hasError = true;
+        errorSection.innerHTML = `
+          <div class="error-box">
+            <strong>⚠️ Ongeldig vetgehalte room!</strong><br>
+            Het vetgehalte van de toe te voegen room (${effectiveCreamFat}%) moet <strong>hoger</strong> zijn dan het gewenste vetgehalte (${targetFat}%).
+          </div>`;
+      } else {
+        errorSection.innerHTML = '';
+      }
+    } else {
+      errorSection.innerHTML = '';
+    }
+
+    // 2. BASIS BEREKENING TOEVOEGING / WATER (op basis van activeBatchSize)
+    if (!hasError && activeBatchSize > 0) {
+      if (currentFat > 0 && targetFat > currentFat) {
+        rowAddIngredient.style.display = 'flex';
+        addTooltip.style.display = addTooltip.style.display === 'block' ? 'block' : 'none';
+        rowAddWater.style.display = 'none';
+
+        if (effectiveCreamFat > targetFat) {
+          addAmount = ((targetFat - currentFat) / (effectiveCreamFat - targetFat)) * activeBatchSize;
+          
+          const currentFatKg = (activeBatchSize * currentFat) / 100;
+          const addFatKg = (addAmount * effectiveCreamFat) / 100;
+          const totalFatKgVal = currentFatKg + addFatKg;
+          const totalBatchVal = activeBatchSize + addAmount;
+
+          stepsHtml = `
+            <div class="calc-step"><strong>Stap 1: Huidige hoeveelheid vet</strong><br>
+            ${activeBatchSize} kg × ${currentFat.toFixed(2)}% = ${currentFatKg.toFixed(2)} kg vet</div>
+            <div class="calc-step"><strong>Stap 2: Benodigde ${ingredientName} berekenen</strong><br>
+            (${targetFat.toFixed(2)}% - ${currentFat.toFixed(2)}%) / (${effectiveCreamFat.toFixed(2)}% - ${targetFat.toFixed(2)}%) × ${activeBatchSize} kg = <strong>${Math.round(addAmount)} kg ${ingredientName}</strong></div>
+            <div class="calc-step"><strong>Stap 3: Vet uit toevoeging</strong><br>
+            ${Math.round(addAmount)} kg × ${effectiveCreamFat.toFixed(2)}% = ${addFatKg.toFixed(2)} kg vet</div>
+            <div class="calc-step"><strong>Stap 4: Totale batch & vet</strong><br>
+            Totale batch na correctie: ${activeBatchSize} kg + ${Math.round(addAmount)} kg = <strong>${Math.round(totalBatchVal)} kg</strong><br>
+            Totaal vet: ${currentFatKg.toFixed(2)} kg + ${addFatKg.toFixed(2)} kg = <strong>${Math.round(totalFatKgVal)} kg vet</strong></div>
+          `;
+        } else {
+          stepsHtml = '<p style="margin:0; color:#c0392b;">Het vetgehalte van de toevoeging moet hoger zijn dan het gewenste vetgehalte.</p>';
+        }
+      } 
+      else if (currentFat > targetFat && targetFat > 0) {
+        rowAddIngredient.style.display = 'none';
+        addTooltip.style.display = 'none';
+        rowAddWater.style.display = 'flex';
+
+        waterToAdd = ((currentFat / targetFat) - 1) * activeBatchSize;
+        
+        const currentFatKg = (activeBatchSize * currentFat) / 100;
+        const totalBatchVal = activeBatchSize + waterToAdd;
+
+        stepsHtml = `
+          <div class="calc-step"><strong>Stap 1: Huidige hoeveelheid vet</strong><br>
+          ${activeBatchSize} kg × ${currentFat.toFixed(2)}% = ${currentFatKg.toFixed(2)} kg vet</div>
+          <div class="calc-step"><strong>Stap 2: Water toevoegen voor verdunning</strong><br>
+          ( ${currentFat.toFixed(2)}% / ${targetFat.toFixed(2)}% - 1 ) × ${activeBatchSize} kg = <strong>${Math.round(waterToAdd)} kg water</strong></div>
+          <div class="calc-step"><strong>Stap 3: Totale batch & vet</strong><br>
+          Totale batch na correctie: ${activeBatchSize} kg + ${Math.round(waterToAdd)} kg = <strong>${Math.round(totalBatchVal)} kg</strong><br>
+          Totaal vet blijft ongewijzigd: <strong>${Math.round(currentFatKg)} kg vet</strong></div>
+        `;
+      } else {
+        rowAddIngredient.style.display = 'flex';
+        rowAddWater.style.display = 'flex';
+        stepsHtml = '<p style="margin:0; font-style:italic; color:#666;">Vul de gegevens in om de berekening in stappen te zien.</p>';
+      }
+    } else {
+      stepsHtml = '<p style="margin:0; color:#c0392b;">Corrigeer de invoer om de berekening in stappen te zien.</p>';
+    }
+
+    const totalBatch = activeBatchSize + addAmount + waterToAdd;
+
+    document.getElementById('addValue').innerText = Math.round(addAmount) + ' kg';
+    document.getElementById('waterToAdd').innerText = Math.round(waterToAdd) + ' kg';
+    document.getElementById('totalBatch').innerText = Math.round(totalBatch) + ' kg';
+
+    document.getElementById('calcSteps').innerHTML = stepsHtml;
+
+    // 3. BEREKENING WERKELIJKE BATCH INHOUD (Gebruikt ALTIJD de originele inputBatchSize of actieve referentie)
+    const actualBatchLabelEl = document.getElementById('actualBatchLabel');
+    const actualBatchValueEl = document.getElementById('actualBatchValue');
+    const detailsEl = document.getElementById('actualBatchDetails');
+    const applyButton = document.querySelector('.btn-apply-batch');
+
+    if (!hasError && inputBatchSize > 0 && currentFat > 0 && targetFat > 0 && (effectiveCreamFat > 0 || missingComponent.startsWith('water'))) {
+      let devIngredientLabel = ingredientName;
+      let calcCreamFat = effectiveCreamFat;
+
+      if (missingComponent.startsWith('water') && calcCreamFat === 0) {
+        calcCreamFat = 43; 
+      }
+
+      const targetFatKgPlanned = (inputBatchSize * targetFat) / 100;
+      const plannedIngredient = (targetFatKgPlanned / calcCreamFat) * 100;
+      const plannedWater = inputBatchSize - plannedIngredient;
+
+      let actualIngredient = 0;
+      let actualWater = 0;
+      let actualTotal = 0;
+
+      if (missingComponent === 'cream_less' || missingComponent === 'cream_more' || missingComponent === 'fat_less' || missingComponent === 'fat_more') {
+        actualWater = plannedWater;
+        const ingredientFraction = currentFat / calcCreamFat;
+        actualTotal = actualWater / (1 - ingredientFraction);
+        actualIngredient = actualTotal - actualWater;
+      } else {
+        actualIngredient = plannedIngredient;
+        const totalFatKgActual = (actualIngredient * calcCreamFat) / 100;
+        actualTotal = (totalFatKgActual / currentFat) * 100;
+        actualWater = actualTotal - actualIngredient;
+      }
+
+      computedActualTotal = actualTotal;
+
+      const diffTotal = actualTotal - inputBatchSize;
+      const diffIngredient = actualIngredient - plannedIngredient;
+      const diffWater = actualWater - plannedWater;
+
+      const colorIngredient = Math.abs(diffIngredient) < 0.5 ? '#27ae60' : '#c0392b';
+      const colorWater = Math.abs(diffWater) < 0.5 ? '#27ae60' : '#c0392b';
+      const colorTotal = Math.abs(diffTotal) < 0.5 ? '#27ae60' : '#c0392b';
+
+      const diffIngredientTxt = Math.abs(diffIngredient) < 0.5 ? '' : ` (${diffIngredient > 0 ? '+' : ''}${Math.round(diffIngredient)} kg)`;
+      const diffWaterTxt = Math.abs(diffWater) < 0.5 ? '' : ` (${diffWater > 0 ? '+' : ''}${Math.round(diffWater)} kg)`;
+      const diffTotalTxt = Math.abs(diffTotal) < 0.5 ? '0 kg' : `${diffTotal > 0 ? '+' : ''}${Math.round(diffTotal)} kg`;
+
+      if (isApplied) {
+        actualBatchLabelEl.innerText = 'Origineel geplande batchgrootte:';
+        actualBatchValueEl.innerText = Math.round(originalBatchSize) + ' kg';
+      } else {
+        actualBatchLabelEl.innerText = 'Vermoedelijke werkelijke batchgrootte:';
+        actualBatchValueEl.innerText = Math.round(actualTotal) + ' kg';
+      }
+
+      // Details-weergave op tabblad Berekening
+      detailsEl.innerHTML = `
+        <div class="result-row">
+          <span>Geplande hoeveelheid water:</span>
+          <span class="result-value">${Math.round(plannedWater)} kg</span>
+        </div>
+        <div class="result-row">
+          <span>Geplande hoeveelheid ${devIngredientLabel}:</span>
+          <span class="result-value">${Math.round(plannedIngredient)} kg</span>
+        </div>
+        <hr style="border:0; border-top: 1px dashed var(--border-blue); margin: 8px 0;">
+        <div class="result-row">
+          <span>Werkelijk aanwezig water:</span>
+          <span class="result-value" style="color:${colorWater}">${Math.round(actualWater)} kg${diffWaterTxt}</span>
+        </div>
+        <div class="result-row">
+          <span>Werkelijk aanwezige ${devIngredientLabel}:</span>
+          <span class="result-value" style="color:${colorIngredient}">${Math.round(actualIngredient)} kg${diffIngredientTxt}</span>
+        </div>
+        <div class="result-row" style="margin-top: 6px;">
+          <span>Verschil met gepland:</span>
+          <span class="result-value" style="color:${colorTotal}">${diffTotalTxt}</span>
+        </div>
+      `;
+    } else {
+      computedActualTotal = 0;
+      actualBatchLabelEl.innerText = isApplied ? 'Origineel geplande batchgrootte:' : 'Vermoedelijke werkelijke batchgrootte:';
+      actualBatchValueEl.innerText = isApplied && originalBatchSize !== null ? Math.round(originalBatchSize) + ' kg' : '0 kg';
+      detailsEl.innerHTML = '<p style="margin:0; font-style:italic; color:#666;">Vul alle vereiste velden correct in voor details.</p>';
+    }
+
+    if (applyButton) {
+      if (isApplied) {
+        applyButton.innerText = '↺ Herstel originele batchgrootte';
+        applyButton.style.backgroundColor = '#dc3545';
+        applyButton.style.color = '#ffffff';
+        applyButton.style.borderColor = '#dc3545';
+      } else {
+        applyButton.innerText = '↺ Overnemen als geplande batch';
+        applyButton.style.backgroundColor = '';
+        applyButton.style.color = '';
+        applyButton.style.borderColor = '';
+      }
+    }
   }
+
+  // Initialisatie bij het laden van de pagina
+  window.addEventListener('DOMContentLoaded', () => {
+    onCauseChange();
+
+    const inputs = Array.from(document.querySelectorAll('input:not([type="hidden"]), select'));
+    inputs.forEach((input, index) => {
+      input.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          let nextIndex = index + 1;
+          while (nextIndex < inputs.length) {
+            const nextElem = inputs[nextIndex];
+            if (nextElem.offsetParent !== null && !nextElem.disabled) {
+              nextElem.focus();
+              if (typeof nextElem.select === 'function') {
+                nextElem.select();
+              }
+              break;
+            }
+            nextIndex++;
+          }
+        }
+      });
+    });
+  });
+
+  let deferredPrompt;
+  const installBtn = document.getElementById('installBtn');
+  const iosInstruction = document.getElementById('iosInstruction');
+
+  const isIos = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
+  const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
+
+  if (!isStandalone) {
+    if (isIos) {
+      installBtn.style.display = 'block';
+      installBtn.addEventListener('click', () => {
+        iosInstruction.style.display = iosInstruction.style.display === 'none' ? 'block' : 'none';
+      });
+    }
+  }
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    installBtn.style.display = 'block';
+
+    installBtn.addEventListener('click', () => {
+      iosInstruction.style.display = 'none';
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(() => {
+        deferredPrompt = null;
+        installBtn.style.display = 'none';
+      });
+    });
+  });
 </script>
 
 </body>
