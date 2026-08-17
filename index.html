@@ -261,24 +261,6 @@
       border-color: var(--primary);
     }
 
-    /* Actieknop binnen tab content (voor onderaan details) */
-    .btn-update-batch {
-      width: 100%;
-      margin-top: 10px;
-      padding: 8px 12px;
-      background-color: var(--primary);
-      color: white;
-      border: none;
-      border-radius: 6px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background-color 0.2s ease;
-    }
-    .btn-update-batch:hover {
-      background-color: var(--primary-hover);
-    }
-
     /* Footer acties (Feedback / PWA) */
     .footer-actions {
       margin-top: 24px;
@@ -559,10 +541,13 @@
   }
 
   function calculate() {
-    const batchSize = parseFloat(document.getElementById('batchSize').value) || 0;
+    const inputBatchSize = parseFloat(document.getElementById('batchSize').value) || 0;
     const currentFat = parseFloat(document.getElementById('currentFat').value) || 0;
     const targetFat = parseFloat(document.getElementById('targetFat').value) || 0;
     const missingComponent = document.getElementById('missingComponent').value;
+
+    // Bepaal de effectieve batchgrootte voor de berekeningen op tab 1 (houdt rekening met 'overnemen')
+    const activeBatchSize = isApplied && originalBatchSize !== null ? originalBatchSize : inputBatchSize;
 
     let additionType = 'cream';
     let effectiveCreamFat = parseFloat(document.getElementById('creamFat').value) || 0;
@@ -590,7 +575,7 @@
 
     let hasError = false;
 
-    if (batchSize > 0 && currentFat > 0 && targetFat > 0) {
+    if (inputBatchSize > 0 && currentFat > 0 && targetFat > 0) {
       if (isMoreCause && currentFat < targetFat) {
         hasError = true;
         let oorzaakTekst = "er te veel room/vet";
@@ -625,29 +610,29 @@
       errorSection.innerHTML = '';
     }
 
-    // 2. BASIS BEREKENING TOEVOEGING / WATER
+    // 2. BASIS BEREKENING TOEVOEGING / WATER (op basis van activeBatchSize)
     if (!hasError) {
       if (currentFat > 0 && targetFat > currentFat) {
         rowAddIngredient.style.display = 'flex';
         rowAddWater.style.display = 'none';
 
         if (effectiveCreamFat > targetFat) {
-          addAmount = ((targetFat - currentFat) / (effectiveCreamFat - targetFat)) * batchSize;
+          addAmount = ((targetFat - currentFat) / (effectiveCreamFat - targetFat)) * activeBatchSize;
           
-          const currentFatKg = (batchSize * currentFat) / 100;
+          const currentFatKg = (activeBatchSize * currentFat) / 100;
           const addFatKg = (addAmount * effectiveCreamFat) / 100;
           const totalFatKgVal = currentFatKg + addFatKg;
-          const totalBatchVal = batchSize + addAmount;
+          const totalBatchVal = activeBatchSize + addAmount;
 
           stepsHtml = `
             <div class="calc-step"><strong>Stap 1: Huidige hoeveelheid vet</strong><br>
-            ${batchSize} kg × ${currentFat.toFixed(2)}% = ${currentFatKg.toFixed(2)} kg vet</div>
+            ${activeBatchSize} kg × ${currentFat.toFixed(2)}% = ${currentFatKg.toFixed(2)} kg vet</div>
             <div class="calc-step"><strong>Stap 2: Benodigde ${ingredientName} berekenen</strong><br>
-            (${targetFat.toFixed(2)}% - ${currentFat.toFixed(2)}%) / (${effectiveCreamFat.toFixed(2)}% - ${targetFat.toFixed(2)}%) × ${batchSize} kg = <strong>${Math.round(addAmount)} kg ${ingredientName}</strong></div>
+            (${targetFat.toFixed(2)}% - ${currentFat.toFixed(2)}%) / (${effectiveCreamFat.toFixed(2)}% - ${targetFat.toFixed(2)}%) × ${activeBatchSize} kg = <strong>${Math.round(addAmount)} kg ${ingredientName}</strong></div>
             <div class="calc-step"><strong>Stap 3: Vet uit toevoeging</strong><br>
             ${Math.round(addAmount)} kg × ${effectiveCreamFat.toFixed(2)}% = ${addFatKg.toFixed(2)} kg vet</div>
             <div class="calc-step"><strong>Stap 4: Totale batch & vet</strong><br>
-            Totale batch na correctie: ${batchSize} kg + ${Math.round(addAmount)} kg = <strong>${Math.round(totalBatchVal)} kg</strong><br>
+            Totale batch na correctie: ${activeBatchSize} kg + ${Math.round(addAmount)} kg = <strong>${Math.round(totalBatchVal)} kg</strong><br>
             Totaal vet: ${currentFatKg.toFixed(2)} kg + ${addFatKg.toFixed(2)} kg = <strong>${Math.round(totalFatKgVal)} kg vet</strong></div>
           `;
         } else {
@@ -658,18 +643,18 @@
         rowAddIngredient.style.display = 'none';
         rowAddWater.style.display = 'flex';
 
-        waterToAdd = ((currentFat / targetFat) - 1) * batchSize;
+        waterToAdd = ((currentFat / targetFat) - 1) * activeBatchSize;
         
-        const currentFatKg = (batchSize * currentFat) / 100;
-        const totalBatchVal = batchSize + waterToAdd;
+        const currentFatKg = (activeBatchSize * currentFat) / 100;
+        const totalBatchVal = activeBatchSize + waterToAdd;
 
         stepsHtml = `
           <div class="calc-step"><strong>Stap 1: Huidige hoeveelheid vet</strong><br>
-          ${batchSize} kg × ${currentFat.toFixed(2)}% = ${currentFatKg.toFixed(2)} kg vet</div>
+          ${activeBatchSize} kg × ${currentFat.toFixed(2)}% = ${currentFatKg.toFixed(2)} kg vet</div>
           <div class="calc-step"><strong>Stap 2: Water toevoegen voor verdunning</strong><br>
-          ( ${currentFat.toFixed(2)}% / ${targetFat.toFixed(2)}% - 1 ) × ${batchSize} kg = <strong>${Math.round(waterToAdd)} kg water</strong></div>
+          ( ${currentFat.toFixed(2)}% / ${targetFat.toFixed(2)}% - 1 ) × ${activeBatchSize} kg = <strong>${Math.round(waterToAdd)} kg water</strong></div>
           <div class="calc-step"><strong>Stap 3: Totale batch & vet</strong><br>
-          Totale batch na correctie: ${batchSize} kg + ${Math.round(waterToAdd)} kg = <strong>${Math.round(totalBatchVal)} kg</strong><br>
+          Totale batch na correctie: ${activeBatchSize} kg + ${Math.round(waterToAdd)} kg = <strong>${Math.round(totalBatchVal)} kg</strong><br>
           Totaal vet blijft ongewijzigd: <strong>${Math.round(currentFatKg)} kg vet</strong></div>
         `;
       } else {
@@ -681,7 +666,7 @@
       stepsHtml = '<p style="margin:0; color:#c0392b;">Corrigeer de invoer om de berekening in stappen te zien.</p>';
     }
 
-    const totalBatch = batchSize + addAmount + waterToAdd;
+    const totalBatch = activeBatchSize + addAmount + waterToAdd;
 
     document.getElementById('addValue').innerText = Math.round(addAmount) + ' kg';
     document.getElementById('waterToAdd').innerText = Math.round(waterToAdd) + ' kg';
@@ -689,13 +674,13 @@
 
     document.getElementById('calcSteps').innerHTML = stepsHtml;
 
-    // 3. BEREKENING WERKELIJKE BATCH INHOUD
+    // 3. BEREKENING WERKELIJKE BATCH INHOUD (Gebruikt ALTIJD de originele inputBatchSize)
     const actualBatchLabelEl = document.getElementById('actualBatchLabel');
     const actualBatchValueEl = document.getElementById('actualBatchValue');
     const detailsEl = document.getElementById('actualBatchDetails');
-    const applyButtons = document.querySelectorAll('.btn-apply-batch, .btn-update-batch');
+    const applyButton = document.querySelector('.btn-apply-batch');
 
-    if (!hasError && batchSize > 0 && currentFat > 0 && targetFat > 0 && (effectiveCreamFat > 0 || missingComponent.startsWith('water'))) {
+    if (!hasError && inputBatchSize > 0 && currentFat > 0 && targetFat > 0 && (effectiveCreamFat > 0 || missingComponent.startsWith('water'))) {
       let devIngredientLabel = ingredientName;
       let calcCreamFat = effectiveCreamFat;
 
@@ -703,9 +688,9 @@
         calcCreamFat = 43; 
       }
 
-      const targetFatKgPlanned = (batchSize * targetFat) / 100;
+      const targetFatKgPlanned = (inputBatchSize * targetFat) / 100;
       const plannedIngredient = (targetFatKgPlanned / calcCreamFat) * 100;
-      const plannedWater = batchSize - plannedIngredient;
+      const plannedWater = inputBatchSize - plannedIngredient;
 
       let actualIngredient = 0;
       let actualWater = 0;
@@ -725,7 +710,7 @@
 
       computedActualTotal = actualTotal;
 
-      const diffTotal = actualTotal - batchSize;
+      const diffTotal = actualTotal - inputBatchSize;
       const diffIngredient = actualIngredient - plannedIngredient;
       const diffWater = actualWater - plannedWater;
 
@@ -745,6 +730,7 @@
         actualBatchValueEl.innerText = Math.round(actualTotal) + ' kg';
       }
 
+      // Details-weergave op tabblad Berekening (zonder de knop onderaan)
       detailsEl.innerHTML = `
         <div class="result-row">
           <span>Geplande hoeveelheid water:</span>
@@ -767,9 +753,6 @@
           <span>Verschil met gepland:</span>
           <span class="result-value" style="color:${colorTotal}">${diffTotalTxt}</span>
         </div>
-        <button type="button" class="btn-update-batch" onclick="toggleBatchSizeState()">
-          ${isApplied ? '↺ Herstel originele batchgrootte' : `↺ Gebruik ${Math.round(actualTotal)} kg als geplande batchgrootte`}
-        </button>
       `;
     } else {
       computedActualTotal = 0;
@@ -778,20 +761,19 @@
       detailsEl.innerHTML = '<p style="margin:0; font-style:italic; color:#666;">Vul alle vereiste velden correct in voor details.</p>';
     }
 
-    applyButtons.forEach(btn => {
-      btn.onclick = toggleBatchSizeState;
+    if (applyButton) {
       if (isApplied) {
-        btn.innerText = '↺ Herstel originele batchgrootte';
-        btn.style.backgroundColor = '#dc3545';
-        btn.style.color = '#ffffff';
-        btn.style.borderColor = '#dc3545';
+        applyButton.innerText = '↺ Herstel originele batchgrootte';
+        applyButton.style.backgroundColor = '#dc3545';
+        applyButton.style.color = '#ffffff';
+        applyButton.style.borderColor = '#dc3545';
       } else {
-        btn.innerText = '↺ Overnemen als geplande batch';
-        btn.style.backgroundColor = '';
-        btn.style.color = '';
-        btn.style.borderColor = '';
+        applyButton.innerText = '↺ Overnemen als geplande batch';
+        applyButton.style.backgroundColor = '';
+        applyButton.style.color = '';
+        applyButton.style.borderColor = '';
       }
-    });
+    }
   }
 
   // Initialisatie bij het laden van de pagina
