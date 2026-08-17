@@ -423,10 +423,10 @@
         <!-- Vermoedelijke werkelijke batchgrootte met knop op nieuwe regel -->
         <div style="margin-bottom: 12px;">
           <div style="display: flex; justify-content: space-between; align-items: center;">
-            <span style="font-size: 0.85rem; color: #555;">Vermoedelijke werkelijke batchgrootte:</span>
+            <span id="actualBatchLabel" style="font-size: 0.85rem; color: #555;">Vermoedelijke werkelijke batchgrootte:</span>
             <span id="actualBatchValue" class="result-value" style="font-size: 1.1rem; color: var(--primary);">0 kg</span>
           </div>
-          <button type="button" class="btn-apply-batch" onclick="updateBatchSizeFromCalculated()" title="Overnemen als geplande batchgrootte">
+          <button type="button" class="btn-apply-batch" onclick="toggleBatchSizeState()" title="Overnemen als geplande batchgrootte">
             ↺ Overnemen als geplande batch
           </button>
         </div>
@@ -486,6 +486,8 @@
 
 <script>
   let computedActualTotal = 0;
+  let originalBatchSize = null;
+  let isApplied = false;
 
   function toggleBatchTooltip() {
     const tooltip = document.getElementById('batchTooltip');
@@ -523,10 +525,23 @@
     calculate();
   }
 
-  function updateBatchSizeFromCalculated() {
-    if (computedActualTotal > 0) {
-      document.getElementById('batchSize').value = Math.round(computedActualTotal);
-      calculate();
+  function toggleBatchSizeState() {
+    const batchInput = document.getElementById('batchSize');
+
+    if (!isApplied) {
+      if (computedActualTotal > 0) {
+        originalBatchSize = parseFloat(batchInput.value) || 0;
+        batchInput.value = Math.round(computedActualTotal);
+        isApplied = true;
+        calculate();
+      }
+    } else {
+      if (originalBatchSize !== null) {
+        batchInput.value = originalBatchSize;
+        originalBatchSize = null;
+        isApplied = false;
+        calculate();
+      }
     }
   }
 
@@ -536,6 +551,9 @@
     document.getElementById('targetFat').value = '';
     document.getElementById('creamFat').value = '';
     document.getElementById('missingComponent').value = 'cream_less';
+
+    originalBatchSize = null;
+    isApplied = false;
     
     onCauseChange();
   }
@@ -672,15 +690,17 @@
     document.getElementById('calcSteps').innerHTML = stepsHtml;
 
     // 3. BEREKENING WERKELIJKE BATCH INHOUD
+    const actualBatchLabelEl = document.getElementById('actualBatchLabel');
     const actualBatchValueEl = document.getElementById('actualBatchValue');
     const detailsEl = document.getElementById('actualBatchDetails');
+    const applyButtons = document.querySelectorAll('.btn-apply-batch, .btn-update-batch');
 
     if (!hasError && batchSize > 0 && currentFat > 0 && targetFat > 0 && (effectiveCreamFat > 0 || missingComponent.startsWith('water'))) {
       let devIngredientLabel = ingredientName;
       let calcCreamFat = effectiveCreamFat;
 
       if (missingComponent.startsWith('water') && calcCreamFat === 0) {
-        calcCreamFat = 43; // standaard fallback als er niets is ingevuld bij water-oorzaak
+        calcCreamFat = 43; 
       }
 
       const targetFatKgPlanned = (batchSize * targetFat) / 100;
@@ -717,7 +737,13 @@
       const diffWaterTxt = Math.abs(diffWater) < 0.5 ? '' : ` (${diffWater > 0 ? '+' : ''}${Math.round(diffWater)} kg)`;
       const diffTotalTxt = Math.abs(diffTotal) < 0.5 ? '0 kg' : `${diffTotal > 0 ? '+' : ''}${Math.round(diffTotal)} kg`;
 
-      actualBatchValueEl.innerText = Math.round(actualTotal) + ' kg';
+      if (isApplied) {
+        actualBatchLabelEl.innerText = 'Origineel geplande batchgrootte:';
+        actualBatchValueEl.innerText = Math.round(originalBatchSize) + ' kg';
+      } else {
+        actualBatchLabelEl.innerText = 'Vermoedelijke werkelijke batchgrootte:';
+        actualBatchValueEl.innerText = Math.round(actualTotal) + ' kg';
+      }
 
       detailsEl.innerHTML = `
         <div class="result-row">
@@ -741,22 +767,37 @@
           <span>Verschil met gepland:</span>
           <span class="result-value" style="color:${colorTotal}">${diffTotalTxt}</span>
         </div>
-        <button type="button" class="btn-update-batch" onclick="updateBatchSizeFromCalculated()">
-          ↺ Gebruik ${Math.round(actualTotal)} kg als geplande batchgrootte
+        <button type="button" class="btn-update-batch" onclick="toggleBatchSizeState()">
+          ${isApplied ? '↺ Herstel originele batchgrootte' : `↺ Gebruik ${Math.round(actualTotal)} kg als geplande batchgrootte`}
         </button>
       `;
     } else {
       computedActualTotal = 0;
-      actualBatchValueEl.innerText = '0 kg';
+      actualBatchLabelEl.innerText = isApplied ? 'Origineel geplande batchgrootte:' : 'Vermoedelijke werkelijke batchgrootte:';
+      actualBatchValueEl.innerText = isApplied && originalBatchSize !== null ? Math.round(originalBatchSize) + ' kg' : '0 kg';
       detailsEl.innerHTML = '<p style="margin:0; font-style:italic; color:#666;">Vul alle vereiste velden correct in voor details.</p>';
     }
+
+    applyButtons.forEach(btn => {
+      btn.onclick = toggleBatchSizeState;
+      if (isApplied) {
+        btn.innerText = '↺ Herstel originele batchgrootte';
+        btn.style.backgroundColor = '#dc3545';
+        btn.style.color = '#ffffff';
+        btn.style.borderColor = '#dc3545';
+      } else {
+        btn.innerText = '↺ Overnemen als geplande batch';
+        btn.style.backgroundColor = '';
+        btn.style.color = '';
+        btn.style.borderColor = '';
+      }
+    });
   }
 
   // Initialisatie bij het laden van de pagina
   window.addEventListener('DOMContentLoaded', () => {
     onCauseChange();
 
-    // Enter-toets navigeert automatisch naar het volgende invulveld
     const inputs = Array.from(document.querySelectorAll('input:not([type="hidden"]), select'));
     inputs.forEach((input, index) => {
       input.addEventListener('keydown', function (e) {
