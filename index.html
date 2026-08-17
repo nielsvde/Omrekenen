@@ -123,6 +123,7 @@
       font-weight: bold;
       cursor: pointer;
       user-select: none;
+      flex-shrink: 0;
     }
     .info-tooltip {
       display: none;
@@ -194,6 +195,7 @@
     .result-row {
       display: flex;
       justify-content: space-between;
+      align-items: flex-start;
       gap: 8px;
       margin-bottom: 10px;
       font-size: 0.92rem;
@@ -417,9 +419,17 @@
 
         <!-- Correctie resultaten -->
         <div class="result-row" id="rowAddIngredient">
-          <span id="addLabel">Hoeveelheid room toevoegen:</span>
+          <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+            <span id="addLabel">Hoeveelheid room toevoegen:</span>
+            <span class="info-icon" onclick="toggleAddTooltip()" title="Klik voor meer informatie">?</span>
+          </div>
           <span id="addValue" class="result-value">0 kg</span>
         </div>
+        <!-- Tooltip voor toevoegen room/vet -->
+        <div id="addTooltip" class="info-tooltip" style="margin-bottom: 10px;">
+          <strong>Let op:</strong> 100% Room toevoegen zonder water inspoel!
+        </div>
+
         <div class="result-row" id="rowAddWater">
           <span>Hoeveelheid water toevoegen:</span>
           <span id="waterToAdd" class="result-value">0 kg</span>
@@ -473,6 +483,11 @@
 
   function toggleBatchTooltip() {
     const tooltip = document.getElementById('batchTooltip');
+    tooltip.style.display = tooltip.style.display === 'block' ? 'none' : 'block';
+  }
+
+  function toggleAddTooltip() {
+    const tooltip = document.getElementById('addTooltip');
     tooltip.style.display = tooltip.style.display === 'block' ? 'none' : 'block';
   }
 
@@ -534,6 +549,10 @@
     document.getElementById('creamFat').value = '';
     document.getElementById('missingComponent').value = 'cream_less';
 
+    // Verberg tooltips bij reset
+    document.getElementById('batchTooltip').style.display = 'none';
+    document.getElementById('addTooltip').style.display = 'none';
+
     originalBatchSize = null;
     isApplied = false;
     
@@ -561,6 +580,7 @@
 
     const rowAddIngredient = document.getElementById('rowAddIngredient');
     const rowAddWater = document.getElementById('rowAddWater');
+    const addTooltip = document.getElementById('addTooltip');
     const errorSection = document.getElementById('errorSection');
 
     let addAmount = 0;
@@ -614,6 +634,7 @@
     if (!hasError) {
       if (currentFat > 0 && targetFat > currentFat) {
         rowAddIngredient.style.display = 'flex';
+        addTooltip.style.display = addTooltip.style.display === 'block' ? 'block' : 'none'; // Behoud state indien geopend, of pas aan indien nodig
         rowAddWater.style.display = 'none';
 
         if (effectiveCreamFat > targetFat) {
@@ -641,6 +662,7 @@
       } 
       else if (currentFat > targetFat && targetFat > 0) {
         rowAddIngredient.style.display = 'none';
+        addTooltip.style.display = 'none';
         rowAddWater.style.display = 'flex';
 
         waterToAdd = ((currentFat / targetFat) - 1) * activeBatchSize;
