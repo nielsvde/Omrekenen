@@ -659,6 +659,16 @@
 
       const diffTotal = actualTotal - batchSize;
       const diffIngredient = actualIngredient - plannedIngredient;
+      const diffWater = actualWater - plannedWater;
+
+      // Kleur- en tekstbepaling (afwijkend = rood, goed/geen afwijking = groen)
+      const colorIngredient = Math.abs(diffIngredient) < 0.5 ? '#27ae60' : '#c0392b';
+      const colorWater = Math.abs(diffWater) < 0.5 ? '#27ae60' : '#c0392b';
+      const colorTotal = Math.abs(diffTotal) < 0.5 ? '#27ae60' : '#c0392b';
+
+      const diffIngredientTxt = Math.abs(diffIngredient) < 0.5 ? '' : ` (${diffIngredient > 0 ? '+' : ''}${Math.round(diffIngredient)} kg)`;
+      const diffWaterTxt = Math.abs(diffWater) < 0.5 ? '' : ` (${diffWater > 0 ? '+' : ''}${Math.round(diffWater)} kg)`;
+      const diffTotalTxt = Math.abs(diffTotal) < 0.5 ? '0 kg' : `${diffTotal > 0 ? '+' : ''}${Math.round(diffTotal)} kg`;
 
       devContainer.innerHTML = `
         <div class="result-row">
@@ -672,11 +682,11 @@
         <hr style="border:0; border-top: 1px dashed var(--border-blue); margin: 8px 0;">
         <div class="result-row">
           <span>Werkelijk aanwezig water:</span>
-          <span class="result-value">${Math.round(actualWater)} kg</span>
+          <span class="result-value" style="color:${colorWater}">${Math.round(actualWater)} kg${diffWaterTxt}</span>
         </div>
         <div class="result-row">
           <span>Werkelijk aanwezige ${devIngredientLabel}:</span>
-          <span class="result-value" style="color:${diffIngredient < 0 ? '#c0392b' : (diffIngredient > 0 ? '#d35400' : '#27ae60')}">${Math.round(actualIngredient)} kg (${diffIngredient > 0 ? '+' : ''}${Math.round(diffIngredient)} kg)</span>
+          <span class="result-value" style="color:${colorIngredient}">${Math.round(actualIngredient)} kg${diffIngredientTxt}</span>
         </div>
         <div class="result-row" style="margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border-blue);">
           <span><strong>Vermoedelijke werkelijke batchgrootte:</strong></span>
@@ -684,7 +694,7 @@
         </div>
         <div class="result-row">
           <span>Verschil met gepland:</span>
-          <span class="result-value" style="color:${diffTotal < 0 ? '#c0392b' : (diffTotal > 0 ? '#d35400' : '#27ae60')}">${diffTotal > 0 ? '+' : ''}${Math.round(diffTotal)} kg</span>
+          <span class="result-value" style="color:${colorTotal}">${diffTotalTxt}</span>
         </div>
         <button type="button" class="btn-update-batch" onclick="updateBatchSizeFromCalculated()">
           ↺ Gebruik ${Math.round(actualTotal)} kg als geplande batchgrootte
