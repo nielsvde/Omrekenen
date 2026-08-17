@@ -354,7 +354,7 @@
     </div>
     <input type="number" id="batchSize" placeholder="bijv. 4210" step="1" oninput="calculate()">
     <div id="batchTooltip" class="info-tooltip">
-      <strong>Let op:</strong> De werkelijke batchgrootte in de tank kan afwijken van het recept als er een grondstof niet juist of onvolledig gedoseerd is!
+      <strong>Let op:</strong> De werkelijke batchgrootte in de tank kan afwijken van het recept als een grondstof niet juist of onvolledig gedoseerd is!
     </div>
   </div>
 
@@ -546,7 +546,7 @@
     const targetFat = parseFloat(document.getElementById('targetFat').value) || 0;
     const missingComponent = document.getElementById('missingComponent').value;
 
-    // Bepaal de effectieve batchgrootte voor de berekeningen op tab 1 (houdt rekening met 'overnemen')
+    // Bepaal de effectieve batchgrootte voor de correctieberekening (houdt rekening met 'overnemen')
     const activeBatchSize = isApplied && originalBatchSize !== null ? originalBatchSize : inputBatchSize;
 
     let additionType = 'cream';
