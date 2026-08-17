@@ -48,7 +48,7 @@
       }
     }
     
-    /* Geoptimaliseerde CSS voor de PNG header elementen + Reset Knop */
+    /* Header elementen + Reset Knop */
     .header-container {
       display: flex;
       align-items: center;
@@ -150,7 +150,7 @@
       cursor: not-allowed;
     }
 
-    /* Vernieuwde Tabs & Resultatenblok als 1 geheel */
+    /* Tabs & Resultatenblok */
     .tabs-wrapper {
       margin-top: 24px;
     }
@@ -163,11 +163,11 @@
     }
     .tab-btn {
       flex: 1;
-      padding: 10px 6px;
+      padding: 10px 4px;
       border: 1px solid var(--border-blue);
       border-bottom: none;
       background: #e1eeef;
-      font-size: 0.82rem;
+      font-size: 0.78rem;
       font-weight: 600;
       color: #555;
       cursor: pointer;
@@ -372,7 +372,7 @@
     <div class="tab-buttons">
       <button class="tab-btn active" onclick="switchTab('tab-resultat')">Resultaat</button>
       <button class="tab-btn" onclick="switchTab('tab-berekening')">Berekening</button>
-      <button class="tab-btn" onclick="switchTab('tab-afwijkend')">Afwijkende Batch</button>
+      <button class="tab-btn" onclick="switchTab('tab-afwijkend')">Bereken werkelijke batchgrootte</button>
     </div>
 
     <div class="tab-content-container">
@@ -399,7 +399,7 @@
         </div>
       </div>
 
-      <!-- Tab 3: Afwijkende Batch Inhoud -->
+      <!-- Tab 3: Werkelijke Batch Inhoud -->
       <div id="tab-afwijkend" class="tab-content">
         <div class="form-group" style="margin-bottom: 12px;">
           <label for="missingComponent" style="font-size:0.85rem;">Vermoedelijke oorzaak afwijking:</label>
@@ -434,7 +434,7 @@
 
 <script>
   let computedActualTotal = 0;
-  let savedCreamFat = ''; // Onthoudt het ingevulde vetgehalte voor room
+  let savedCreamFat = '';
 
   function toggleBatchTooltip() {
     const tooltip = document.getElementById('batchTooltip');
@@ -455,7 +455,6 @@
     document.getElementById(tabId).classList.add('active');
   }
 
-  // Slaat het ingevoerde vetgehalte op als room actief is
   function onCreamFatInput() {
     const additionType = document.getElementById('additionType').value;
     if (additionType === 'cream') {
@@ -476,7 +475,6 @@
       creamFatLabel.innerText = 'Vetgehalte toe te voegen vloeibaar vet (%):';
       addLabel.innerText = 'Hoeveelheid vloeibaar vet toevoegen:';
     } else {
-      // Herstel de opgeslagen waarde van room als die er is
       creamFatInput.value = savedCreamFat;
       creamFatInput.placeholder = 'bijv. 43.0';
       creamFatLabel.innerText = 'Vetgehalte toe te voegen room (%):';
@@ -511,7 +509,6 @@
     }
   }
 
-  // Reset alle invoervelden en variabelen
   function resetCalculator() {
     document.getElementById('batchSize').value = '';
     document.getElementById('currentFat').value = '';
@@ -621,7 +618,7 @@
 
     document.getElementById('calcSteps').innerHTML = stepsHtml;
 
-    // --- BEREKENING TAB 3: AFWIJKENDE BATCH INHOUD ---
+    // BEREKENING TAB 3
     const devContainer = document.getElementById('deviationResults');
 
     if (batchSize > 0 && currentFat > 0 && targetFat > 0 && creamFat > 0) {
@@ -679,7 +676,7 @@
           <span class="result-value" style="color:${diffIngredient < 0 ? '#c0392b' : '#27ae60'}">${Math.round(actualIngredient)} kg (${Math.round(diffIngredient)} kg)</span>
         </div>
         <div class="result-row" style="margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border-blue);">
-          <span><strong>Vermoedelijke batchgrootte:</strong></span>
+          <span><strong>Vermoedelijke werkelijke batchgrootte:</strong></span>
           <span class="result-value" style="color:#000;"><strong>${Math.round(actualTotal)} kg</strong></span>
         </div>
         <div class="result-row">
