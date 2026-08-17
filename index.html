@@ -206,6 +206,17 @@
       white-space: nowrap;
     }
 
+    /* Koptekst voor secties binnen tabbladen */
+    .section-title {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-top: 0;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
     /* Berekening stappen styling */
     .calc-step {
       margin-bottom: 12px;
@@ -229,56 +240,29 @@
       margin-bottom: 14px;
     }
 
-    /* Inklapbare details knop & container + Subtiele knop */
-    .details-action-bar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 6px;
-      margin-top: 6px;
-    }
-    .btn-toggle-details {
-      background: none;
-      border: none;
-      color: var(--primary);
-      font-size: 0.85rem;
+    /* Knop voor overnemen van batchgrootte */
+    .btn-apply-batch {
+      background-color: #e7f1ff;
+      border: 1px solid #b6d4fe;
+      color: var(--primary-hover);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.8rem;
       font-weight: 600;
-      padding: 4px 0;
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-    .btn-toggle-details:hover {
-      text-decoration: underline;
-    }
-    .btn-subtle-apply {
-      background: transparent;
-      border: none;
-      color: #6c757d;
-      font-size: 0.78rem;
-      font-weight: 500;
-      cursor: pointer;
-      padding: 2px 4px;
-      border-radius: 4px;
       transition: all 0.2s ease;
+      white-space: nowrap;
     }
-    .btn-subtle-apply:hover {
-      color: var(--primary);
-      background-color: rgba(0, 123, 255, 0.08);
-      text-decoration: underline;
-    }
-    .details-container {
-      display: none;
-      margin-top: 10px;
-      padding-top: 10px;
-      border-top: 1px dashed var(--border-blue);
+    .btn-apply-batch:hover {
+      background-color: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
     }
 
-    /* Actieknop binnen tab content */
+    /* Actieknop binnen tab content (voor onderaan details) */
     .btn-update-batch {
       width: 100%;
-      margin-top: 12px;
+      margin-top: 10px;
       padding: 8px 12px;
       background-color: var(--primary);
       color: white;
@@ -434,28 +418,18 @@
         <!-- Foutmelding / Waarschuwing bovenaan -->
         <div id="errorSection"></div>
 
-        <!-- Vermoedelijke werkelijke batchgrootte -->
-        <div class="result-row" style="margin-bottom: 6px;">
-          <span>Vermoedelijke werkelijke batchgrootte:</span>
-          <span id="actualBatchValue" class="result-value">0 kg</span>
-        </div>
-
-        <!-- Inklapbare details knop & subtiele overneem-knop -->
-        <div class="details-action-bar">
-          <button type="button" class="btn-toggle-details" onclick="toggleDetails()">
-            <span id="toggleIcon">▶</span> Details werkelijke batch tonen
-          </button>
-          <button type="button" class="btn-subtle-apply" onclick="updateBatchSizeFromCalculated()" title="Overnemen als geplande batchgrootte">
-            (overnemen)
+        <!-- Vermoedelijke werkelijke batchgrootte met knop -->
+        <div class="result-row" style="align-items: center; margin-bottom: 12px;">
+          <div>
+            <span style="display: block; font-size: 0.85rem; color: #555;">Vermoedelijke werkelijke batchgrootte:</span>
+            <span id="actualBatchValue" class="result-value" style="font-size: 1.1rem; color: var(--primary);">0 kg</span>
+          </div>
+          <button type="button" class="btn-apply-batch" onclick="updateBatchSizeFromCalculated()" title="Overnemen als geplande batchgrootte">
+            ↺ Overnemen als geplande batch
           </button>
         </div>
 
-        <!-- Inklapbare details -->
-        <div id="detailsContainer" class="details-container">
-          <div id="actualBatchDetails"></div>
-        </div>
-
-        <hr style="border:0; border-top: 1px solid var(--border-blue); margin: 12px 0;">
+        <hr style="border:0; border-top: 1px solid var(--border-blue); margin: 14px 0;">
 
         <!-- Correctie resultaten -->
         <div class="result-row" id="rowAddIngredient">
@@ -474,6 +448,17 @@
 
       <!-- Tab 2: Berekening in stappen -->
       <div id="tab-berekening" class="tab-content">
+        <!-- Sectie 1: Werkelijke batch details -->
+        <div class="section-title">1. Analyse werkelijke batch inhoud</div>
+        <div id="actualBatchDetails">
+          <p style="margin:0; font-style:italic; color:#666;">Vul de gegevens in om de werkelijke batchberekening te zien.</p>
+        </div>
+
+        <!-- Duidelijke scheidingslijn -->
+        <hr style="border:0; border-top: 2px dashed #b6d4fe; margin: 18px 0;">
+
+        <!-- Sectie 2: Stapsgewijze correctieberekening -->
+        <div class="section-title">2. Correctie berekening stappen</div>
         <div id="calcSteps">
           <p style="margin:0; font-style:italic; color:#666;">Vul de gegevens in om de berekening in stappen te zien.</p>
         </div>
@@ -499,24 +484,10 @@
 
 <script>
   let computedActualTotal = 0;
-  let detailsVisible = false;
 
   function toggleBatchTooltip() {
     const tooltip = document.getElementById('batchTooltip');
     tooltip.style.display = tooltip.style.display === 'block' ? 'none' : 'block';
-  }
-
-  function toggleDetails() {
-    detailsVisible = !detailsVisible;
-    const container = document.getElementById('detailsContainer');
-    const icon = document.getElementById('toggleIcon');
-    if (detailsVisible) {
-      container.style.display = 'block';
-      icon.innerText = '▼';
-    } else {
-      container.style.display = 'none';
-      icon.innerText = '▶';
-    }
   }
 
   function switchTab(tabId) {
@@ -698,7 +669,7 @@
 
     document.getElementById('calcSteps').innerHTML = stepsHtml;
 
-    // 3. BEREKENING WERKELIJKE BATCH INHOUD (GEÏNTEGREERD)
+    // 3. BEREKENING WERKELIJKE BATCH INHOUD
     const actualBatchValueEl = document.getElementById('actualBatchValue');
     const detailsEl = document.getElementById('actualBatchDetails');
 
@@ -782,6 +753,28 @@
   // Initialisatie bij het laden van de pagina
   window.addEventListener('DOMContentLoaded', () => {
     onCauseChange();
+
+    // Enter-toets navigeert automatisch naar het volgende invulveld
+    const inputs = Array.from(document.querySelectorAll('input:not([type="hidden"]), select'));
+    inputs.forEach((input, index) => {
+      input.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          let nextIndex = index + 1;
+          while (nextIndex < inputs.length) {
+            const nextElem = inputs[nextIndex];
+            if (nextElem.offsetParent !== null && !nextElem.disabled) {
+              nextElem.focus();
+              if (typeof nextElem.select === 'function') {
+                nextElem.select();
+              }
+              break;
+            }
+            nextIndex++;
+          }
+        }
+      });
+    });
   });
 
   let deferredPrompt;
