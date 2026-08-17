@@ -229,7 +229,14 @@
       margin-bottom: 14px;
     }
 
-    /* Inklapbare details knop & container */
+    /* Inklapbare details knop & container + Subtiele knop */
+    .details-action-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      margin-top: 6px;
+    }
     .btn-toggle-details {
       background: none;
       border: none;
@@ -237,13 +244,28 @@
       font-size: 0.85rem;
       font-weight: 600;
       padding: 4px 0;
-      margin-top: 6px;
       cursor: pointer;
       display: flex;
       align-items: center;
       gap: 4px;
     }
     .btn-toggle-details:hover {
+      text-decoration: underline;
+    }
+    .btn-subtle-apply {
+      background: transparent;
+      border: none;
+      color: #6c757d;
+      font-size: 0.78rem;
+      font-weight: 500;
+      cursor: pointer;
+      padding: 2px 4px;
+      border-radius: 4px;
+      transition: all 0.2s ease;
+    }
+    .btn-subtle-apply:hover {
+      color: var(--primary);
+      background-color: rgba(0, 123, 255, 0.08);
       text-decoration: underline;
     }
     .details-container {
@@ -414,14 +436,19 @@
 
         <!-- Vermoedelijke werkelijke batchgrootte -->
         <div class="result-row" style="margin-bottom: 6px;">
-          <span>Vermoedelijke werkelijke batch:</span>
+          <span>Vermoedelijke werkelijke batchgrootte:</span>
           <span id="actualBatchValue" class="result-value">0 kg</span>
         </div>
 
-        <!-- Knop om extra details in/uit te klappen -->
-        <button type="button" class="btn-toggle-details" onclick="toggleDetails()">
-          <span id="toggleIcon">▶</span> Details werkelijke batch tonen
-        </button>
+        <!-- Inklapbare details knop & subtiele overneem-knop -->
+        <div class="details-action-bar">
+          <button type="button" class="btn-toggle-details" onclick="toggleDetails()">
+            <span id="toggleIcon">▶</span> Details werkelijke batch tonen
+          </button>
+          <button type="button" class="btn-subtle-apply" onclick="updateBatchSizeFromCalculated()" title="Overnemen als geplande batchgrootte">
+            (overnemen)
+          </button>
+        </div>
 
         <!-- Inklapbare details -->
         <div id="detailsContainer" class="details-container">
