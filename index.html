@@ -372,8 +372,9 @@
       <div id="tab-afwijkend" class="tab-content">
         <div class="form-group" style="margin-bottom: 12px;">
           <label for="missingComponent" style="font-size:0.85rem;">Vermoedelijke oorzaak afwijking:</label>
-          <select id="missingComponent" onchange="calculate()" style="padding: 8px; font-size:0.9rem;">
-            <option value="ingredient">Er is te weinig room/vet gedoseerd</option>
+          <select id="missingComponent" onchange="onMissingComponentChange()" style="padding: 8px; font-size:0.9rem;">
+            <option value="cream">Er is te weinig room gedoseerd</option>
+            <option value="fat">Er is te weinig vloeibaar vet gedoseerd</option>
             <option value="water">Er is te weinig water gedoseerd</option>
           </select>
         </div>
@@ -431,10 +432,12 @@
     if (additionType === 'fat') {
       creamFatInput.value = '100';
       creamFatInput.disabled = true;
-      creamFatLabel.innerText = 'Vetgehalte vloeibaar vet (%):';
+      creamFatLabel.innerText = 'Vetgehalte toe te voegen vloeibaar vet (%):';
       addLabel.innerText = 'Hoeveelheid vloeibaar vet toevoegen:';
     } else {
-      creamFatInput.value = '';
+      if (creamFatInput.value === '100') {
+        creamFatInput.value = '';
+      }
       creamFatInput.placeholder = 'bijv. 43.00';
       creamFatLabel.innerText = 'Vetgehalte toe te voegen room (%):';
       addLabel.innerText = 'Hoeveelheid room toevoegen:';
@@ -444,6 +447,21 @@
       creamFatInput.disabled = (targetFat <= currentFat && targetFat > 0);
     }
     calculate();
+  }
+
+  function onMissingComponentChange() {
+    const missingComponent = document.getElementById('missingComponent').value;
+    const additionTypeSelect = document.getElementById('additionType');
+
+    if (missingComponent === 'fat' && additionTypeSelect.value !== 'fat') {
+      additionTypeSelect.value = 'fat';
+      toggleAdditionType();
+    } else if (missingComponent === 'cream' && additionTypeSelect.value !== 'cream') {
+      additionTypeSelect.value = 'cream';
+      toggleAdditionType();
+    } else {
+      calculate();
+    }
   }
 
   function updateBatchSizeFromCalculated() {
@@ -482,6 +500,8 @@
     let waterToAdd = 0;
     let stepsHtml = '';
 
+    const ingredientName = additionType === 'fat' ? 'vloeibaar vet' : 'room';
+
     if (currentFat > 0 && targetFat > currentFat) {
       rowAddIngredient.style.display = 'flex';
       rowAddWater.style.display = 'none';
@@ -493,8 +513,6 @@
         const addFatKg = (addAmount * creamFat) / 100;
         const totalFatKgVal = currentFatKg + addFatKg;
         const totalBatchVal = batchSize + addAmount;
-
-        const ingredientName = additionType === 'fat' ? 'vloeibaar vet' : 'room';
 
         stepsHtml = `
           <div class="calc-step"><strong>Stap 1: Huidige hoeveelheid vet</strong><br>
@@ -545,26 +563,34 @@
 
     // --- BEREKENING TAB 3: AFWIJKENDE BATCH INHOUD ---
     const devContainer = document.getElementById('deviationResults');
-    const ingredientLabel = additionType === 'fat' ? 'vloeibaar vet' : 'room';
 
     if (batchSize > 0 && currentFat > 0 && targetFat > 0 && creamFat > 0) {
-      // Wat had het moeten zijn volgens recept?
+      let devIngredientLabel = ingredientName;
+      let effectiveCreamFat = creamFat;
+
+      if (missingComponent === 'fat') {
+        devIngredientLabel = 'vloeibaar vet';
+        effectiveCreamFat = 100;
+      } else if (missingComponent === 'cream') {
+        devIngredientLabel = 'room';
+      }
+
       const targetFatKgPlanned = (batchSize * targetFat) / 100;
-      const plannedIngredient = (targetFatKgPlanned / creamFat) * 100;
+      const plannedIngredient = (targetFatKgPlanned / effectiveCreamFat) * 100;
       const plannedWater = batchSize - plannedIngredient;
 
       let actualIngredient = 0;
       let actualWater = 0;
       let actualTotal = 0;
 
-      if (missingComponent === 'ingredient') {
+      if (missingComponent === 'cream' || missingComponent === 'fat') {
         actualWater = plannedWater;
-        const ingredientFraction = currentFat / creamFat;
+        const ingredientFraction = currentFat / effectiveCreamFat;
         actualTotal = actualWater / (1 - ingredientFraction);
         actualIngredient = actualTotal - actualWater;
       } else {
         actualIngredient = plannedIngredient;
-        const totalFatKgActual = (actualIngredient * creamFat) / 100;
+        const totalFatKgActual = (actualIngredient * effectiveCreamFat) / 100;
         actualTotal = (totalFatKgActual / currentFat) * 100;
         actualWater = actualTotal - actualIngredient;
       }
@@ -580,7 +606,7 @@
           <span class="result-value">${Math.round(plannedWater)} kg</span>
         </div>
         <div class="result-row">
-          <span>Geplande hoeveelheid ${ingredientLabel}:</span>
+          <span>Geplande hoeveelheid ${devIngredientLabel}:</span>
           <span class="result-value">${Math.round(plannedIngredient)} kg</span>
         </div>
         <hr style="border:0; border-top: 1px dashed var(--border-blue); margin: 8px 0;">
@@ -589,7 +615,7 @@
           <span class="result-value">${Math.round(actualWater)} kg</span>
         </div>
         <div class="result-row">
-          <span>Werkelijk aanwezige ${ingredientLabel}:</span>
+          <span>Werkelijk aanwezige ${devIngredientLabel}:</span>
           <span class="result-value" style="color:${diffIngredient < 0 ? '#c0392b' : '#27ae60'}">${Math.round(actualIngredient)} kg (${Math.round(diffIngredient)} kg)</span>
         </div>
         <div class="result-row" style="margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border-blue);">
