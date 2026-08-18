@@ -368,7 +368,7 @@
 </div>
 
 <script>
-  // Dynamisch inladen van tabbladen via fetch
+  // Aangepaste tab-wissel logica om behoud van calculator gegevens te garanderen
   async function switchTab(tabId, btnElement) {
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
@@ -376,6 +376,12 @@
     btnElement.classList.add('active');
     const targetTab = document.getElementById(tabId);
     targetTab.classList.add('active');
+
+    // Als we naar de calculator gaan en deze is al geladen, herbereken dan direct om waarden vast te houden
+    if (tabId === 'tab-calculator' && targetTab.innerHTML.trim() !== '') {
+      if (typeof calculate === 'function') calculate();
+      return;
+    }
 
     if (targetTab.innerHTML.trim() === '') {
       let fileName = '';
@@ -388,8 +394,8 @@
         const html = await response.text();
         targetTab.innerHTML = html;
 
-        if (tabId === 'tab-calculator' && typeof onCauseChange === 'function') {
-          onCauseChange();
+        if (tabId === 'tab-calculator' && typeof calculate === 'function') {
+          calculate();
         }
       } catch (err) {
         targetTab.innerHTML = '<p style="color:red; padding:10px;">Fout bij het laden van dit tabblad.</p>';
