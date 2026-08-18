@@ -3,105 +3,442 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Calculator App</title>
-  <link rel="stylesheet" href="style.css">
+  <title>Product correctie calculator</title>
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#ffffff">
+  <link rel="icon" type="image/png" href="icon.png">
+  <link rel="apple-touch-icon" href="icon.png">
+  <meta name="theme-color" content="#007bff">
+  
+  <style>
+    :root {
+      --primary: #007bff;
+      --primary-hover: #0056b3;
+      --bg: #f4f6f9;
+      --card-bg: #ffffff;
+      --text: #333333;
+      --card-blue-bg: #f0f7ff;
+      --border-blue: #cce5ff;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 12px;
+      display: flex;
+      justify-content: center;
+    }
+    .card {
+      background: var(--card-bg);
+      padding: 20px 16px;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      width: 100%;
+      max-width: 480px;
+      box-sizing: border-box;
+      text-align: center;
+    }
+
+    @media (min-width: 480px) {
+      body {
+        padding: 20px;
+      }
+      .card {
+        padding: 24px;
+      }
+    }
+    
+    .header-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 24px;
+      text-align: left;
+    }
+    .header-branding {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .header-logo {
+      height: 48px;
+      width: auto;
+      display: block;
+      flex-shrink: 0;
+      object-fit: contain;
+    }
+    .header-text-img {
+      height: 38px;
+      width: auto;
+      display: block;
+      object-fit: contain;
+    }
+    .btn-reset-header {
+      background: #f1f3f5;
+      border: 1px solid #ced4da;
+      color: #495057;
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+    .btn-reset-header:hover {
+      background: #e9ecef;
+      color: #212529;
+      border-color: #adb5bd;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+      text-align: left;
+    }
+    .label-container {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+    label {
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+    .info-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      background-color: var(--primary);
+      color: white;
+      border-radius: 50%;
+      font-size: 0.75rem;
+      font-weight: bold;
+      cursor: pointer;
+      user-select: none;
+      flex-shrink: 0;
+    }
+    .info-tooltip {
+      display: none;
+      margin-top: 6px;
+      padding: 10px;
+      background-color: #fff3cd;
+      color: #856404;
+      border: 1px solid #ffeeba;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      line-height: 1.4;
+    }
+    input, select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 1rem;
+      box-sizing: border-box;
+      background-color: #fff;
+    }
+
+    .tabs-wrapper {
+      margin-top: 24px;
+    }
+    .tab-buttons {
+      display: flex;
+      gap: 4px;
+      margin-bottom: -1px;
+      position: relative;
+      z-index: 1;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 10px 4px;
+      border: 1px solid var(--border-blue);
+      border-bottom: none;
+      background: #e1eeef;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #555;
+      cursor: pointer;
+      border-radius: 10px 10px 0 0;
+      transition: all 0.2s ease;
+    }
+    .tab-btn.active {
+      background: var(--card-blue-bg);
+      color: var(--primary);
+      border-color: var(--border-blue);
+      font-weight: 700;
+    }
+
+    .tab-content-container {
+      background: var(--card-blue-bg);
+      border: 1px solid var(--border-blue);
+      border-radius: 0 0 12px 12px;
+      padding: 16px 14px;
+      text-align: left;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.02);
+    }
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+
+    .result-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 10px;
+      font-size: 0.92rem;
+    }
+    .result-row:last-child {
+      margin-bottom: 0;
+    }
+    .result-value {
+      font-weight: bold;
+      white-space: nowrap;
+    }
+
+    .section-title {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-top: 0;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .calc-step {
+      margin-bottom: 12px;
+      font-size: 0.88rem;
+      line-height: 1.4;
+      color: #333;
+    }
+    .calc-step:last-child {
+      margin-bottom: 0;
+    }
+
+    .error-box {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      line-height: 1.4;
+      margin-bottom: 14px;
+    }
+
+    .btn-apply-batch {
+      background-color: #e7f1ff;
+      border: 1px solid #b6d4fe;
+      color: var(--primary-hover);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+      width: 100%;
+      margin-top: 6px;
+    }
+    .btn-apply-batch:hover {
+      background-color: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+    }
+
+    .footer-actions {
+      margin-top: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: center;
+    }
+    .feedback-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+      color: #6c757d;
+      text-decoration: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      transition: background-color 0.2s ease;
+    }
+    .feedback-link:hover {
+      background-color: #e9ecef;
+      color: var(--primary);
+    }
+
+    .btn-install {
+      display: none;
+      width: 100%;
+      padding: 12px;
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+    .btn-install:hover {
+      background-color: var(--primary-hover);
+    }
+    .ios-box {
+      display: none;
+      width: 100%;
+      padding: 12px;
+      background-color: #e9ecef;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      text-align: center;
+      line-height: 1.4;
+      box-sizing: border-box;
+    }
+  </style>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').then((registration) => {
+          registration.update();
+        }).catch((err) => console.error('SW Error:', err));
+      });
+
+      let refreshing = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!refreshing) {
+          refreshing = true;
+          window.location.reload();
+        }
+      });
+    }
+  </script>
 </head>
 <body>
 
-  <!-- Hoofdcontainer voor tabbladen -->
-  <div class="main-container">
-    <div class="tab-navigation">
+<div class="card">
+  <!-- Header: logo, logotekst en resetknop rechts -->
+  <div class="header-container">
+    <div class="header-branding">
+      <img src="logo.png" alt="Logo" class="header-logo">
+      <img src="logotekst.png" alt="Product correctie calculator" class="header-text-img">
+    </div>
+    <button type="button" class="btn-reset-header" onclick="resetCalculator()" title="Wis alle invoer">
+      ↺ Reset
+    </button>
+  </div>
+  
+  <!-- Hoofd Tabs -->
+  <div class="tabs-wrapper">
+    <div class="tab-buttons">
       <button class="tab-btn active" onclick="switchTab('tab-calculator', this)">Calculator</button>
-      <button class="tab-btn" onclick="switchTab('tab-nieuw', this)">Evap / Lattiz</button>
+      <button class="tab-btn" onclick="switchTab('tab-nieuw', this)">Nieuwe Tab</button>
     </div>
 
-    <div id="tab-calculator" class="tab-content active">
-      <!-- Wordt dynamisch ingeladen -->
-    </div>
-    <div id="tab-nieuw" class="tab-content">
-      <!-- Wordt dynamisch ingeladen -->
+    <div class="tab-content-container">
+      <div id="tab-calculator" class="tab-content active"></div>
+      <div id="tab-nieuw" class="tab-content"></div>
     </div>
   </div>
 
-  <!-- PWA Installatie knop / instructie -->
-  <div style="text-align: center; margin-top: 20px;">
-    <button id="installBtn" style="display: none; padding: 10px 20px; background-color: var(--primary); color: #fff; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">App installeren</button>
-    <div id="iosInstruction" style="display: none; margin-top: 10px; font-size: 0.85rem; color: #555; padding: 0 15px;">
-      Om deze app te installeren op je iPhone/iPad, tik op het deel-icoon in Safari en kies <strong>'Zet op beginscherm'</strong>.
+  <!-- Footer Acties (Feedback & PWA) -->
+  <div class="footer-actions">
+    <a href="mailto:nielsvde@hotmail.com?subject=Feedback%20Correctie%20Calculator&body=Beste%20Niels,%0A%0AIk%20heb%20een%20vraag,%20tip%20of%20fout%20ontdekt%20in%20de%20Correctie%20Calculator:%0A%0A" class="feedback-link">
+      💡 Tip of fout melden
+    </a>
+
+    <button id="installBtn" class="btn-install">📲 Installeer app</button>
+    <div id="iosInstruction" class="ios-box">
+      Tik onderaan op het <strong>Deel-icoon</strong> <span style="font-size: 1.1rem;">⎋</span> en kies <strong>'Zet op home-scherm'</strong>.
     </div>
   </div>
+</div>
 
-  <script src="app.js"></script>
-  <script>
-    async function switchTab(tabId, btnElement) {
-      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+<script>
+  // Aangepaste tab-wissel logica om behoud van calculator gegevens te garanderen
+  async function switchTab(tabId, btnElement) {
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
 
-      btnElement.classList.add('active');
-      const targetTab = document.getElementById(tabId);
-      targetTab.classList.add('active');
+    btnElement.classList.add('active');
+    const targetTab = document.getElementById(tabId);
+    targetTab.classList.add('active');
 
-      if (tabId === 'tab-calculator' && targetTab.innerHTML.trim() !== '') {
-        if (typeof calculate === 'function') {
-          calculate();
-        }
-        return;
-      }
-
-      if (targetTab.innerHTML.trim() === '') {
-        let fileName = '';
-        if (tabId === 'tab-calculator') fileName = 'tab-calculator.html';
-        if (tabId === 'tab-nieuw') fileName = 'tab-nieuw.html';
-
-        try {
-          const response = await fetch(fileName);
-          if (!response.ok) throw new Error('Kan bestand niet laden');
-          const html = await response.text();
-          targetTab.innerHTML = html;
-
-          if (tabId === 'tab-calculator' && typeof calculate === 'function') {
-            calculate();
-          }
-        } catch (err) {
-          targetTab.innerHTML = '<p style="color:red; padding:10px;">Fout bij het laden van dit tabblad.</p>';
-        }
-      }
+    // Als we naar de calculator gaan en deze is al geladen, herbereken dan direct om waarden vast te houden
+    if (tabId === 'tab-calculator' && targetTab.innerHTML.trim() !== '') {
+      if (typeof calculate === 'function') calculate();
+      return;
     }
 
-    window.addEventListener('DOMContentLoaded', () => {
-      switchTab('tab-calculator', document.querySelector('.tab-btn'));
-    });
+    if (targetTab.innerHTML.trim() === '') {
+      let fileName = '';
+      if (tabId === 'tab-calculator') fileName = 'tab-calculator.html';
+      if (tabId === 'tab-nieuw') fileName = 'tab-nieuw.html';
 
-    let deferredPrompt;
-    const installBtn = document.getElementById('installBtn');
-    const iosInstruction = document.getElementById('iosInstruction');
+      try {
+        const response = await fetch(fileName);
+        if (!response.ok) throw new Error('Kan bestand niet laden');
+        const html = await response.text();
+        targetTab.innerHTML = html;
 
-    const isIos = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
-    const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
+        if (tabId === 'tab-calculator' && typeof calculate === 'function') {
+          calculate();
+        }
+      } catch (err) {
+        targetTab.innerHTML = '<p style="color:red; padding:10px;">Fout bij het laden van dit tabblad.</p>';
+      }
+    }
+  }
 
-    if (!isStandalone && isIos) {
+  window.addEventListener('DOMContentLoaded', () => {
+    switchTab('tab-calculator', document.querySelector('.tab-btn'));
+  });
+
+  let deferredPrompt;
+  const installBtn = document.getElementById('installBtn');
+  const iosInstruction = document.getElementById('iosInstruction');
+
+  const isIos = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
+  const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
+
+  if (!isStandalone) {
+    if (isIos) {
       installBtn.style.display = 'block';
       installBtn.addEventListener('click', () => {
         iosInstruction.style.display = iosInstruction.style.display === 'none' ? 'block' : 'none';
       });
     }
+  }
 
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      installBtn.style.display = 'block';
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    installBtn.style.display = 'block';
 
-      installBtn.addEventListener('click', () => {
-        iosInstruction.style.display = 'none';
-        deferredPrompt.prompt();
-        deferredPrompt.userChoice.then(() => {
-          deferredPrompt = null;
-          installBtn.style.display = 'none';
-        });
+    installBtn.addEventListener('click', () => {
+      iosInstruction.style.display = 'none';
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(() => {
+        deferredPrompt = null;
+        installBtn.style.display = 'none';
       });
     });
-  </script>
+  });
+</script>
+
+<script src="app.js"></script>
 </body>
 </html>
