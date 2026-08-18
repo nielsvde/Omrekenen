@@ -35,7 +35,6 @@
 
   <script src="app.js"></script>
   <script>
-    // Dynamisch inladen van tabbladen via fetch en direct herberekenen indien nodig
     async function switchTab(tabId, btnElement) {
       document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
       document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
@@ -44,7 +43,6 @@
       const targetTab = document.getElementById(tabId);
       targetTab.classList.add('active');
 
-      // Als we naar de calculator gaan en deze is al geladen, voer dan direct calculate() uit
       if (tabId === 'tab-calculator' && targetTab.innerHTML.trim() !== '') {
         if (typeof calculate === 'function') {
           calculate();
@@ -83,13 +81,11 @@
     const isIos = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
     const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
 
-    if (!isStandalone) {
-      if (isIos) {
-        installBtn.style.display = 'block';
-        installBtn.addEventListener('click', () => {
-          iosInstruction.style.display = iosInstruction.style.display === 'none' ? 'block' : 'none';
-        });
-      }
+    if (!isStandalone && isIos) {
+      installBtn.style.display = 'block';
+      installBtn.addEventListener('click', () => {
+        iosInstruction.style.display = iosInstruction.style.display === 'none' ? 'block' : 'none';
+      });
     }
 
     window.addEventListener('beforeinstallprompt', (e) => {
