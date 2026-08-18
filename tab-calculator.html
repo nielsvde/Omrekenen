@@ -1,0 +1,104 @@
+<!-- 1. Grootte batch -->
+<div class="form-group">
+  <div class="label-container">
+    <label for="batchSize">Geplande batchgrootte (kg):</label>
+    <span class="info-icon" onclick="toggleBatchTooltip()" title="Klik voor meer informatie">?</span>
+  </div>
+  <input type="number" id="batchSize" placeholder="bijv. 4210" step="1" oninput="calculate()">
+  <div id="batchTooltip" class="info-tooltip">
+    <strong>Let op:</strong> De werkelijke batchgrootte in de tank kan afwijken van het recept als een grondstof niet juist of onvolledig gedoseerd is!
+  </div>
+</div>
+
+<!-- 2. Gemeten vetgehalte batch -->
+<div class="form-group">
+  <label for="currentFat">Gemeten vetgehalte batch (%):</label>
+  <input type="number" id="currentFat" placeholder="bijv. 27.42" step="0.01" oninput="calculate()">
+</div>
+
+<!-- 3. Gewenst vetgehalte -->
+<div class="form-group">
+  <label for="targetFat">Gewenst vetgehalte (%):</label>
+  <input type="number" id="targetFat" placeholder="bijv. 30.00" step="0.01" oninput="calculate()">
+</div>
+
+<!-- Keuzevak Oorzaak afwijking -->
+<div class="form-group">
+  <label for="missingComponent">Oorzaak afwijking:</label>
+  <select id="missingComponent" onchange="onCauseChange()">
+    <option value="cream_less">Te weinig room gedoseerd</option>
+    <option value="cream_more">Te veel room gedoseerd</option>
+    <option value="fat_less">Te weinig vloeibaar vet gedoseerd</option>
+    <option value="fat_more">Te veel vloeibaar vet gedoseerd</option>
+    <option value="water_less">Te weinig water gedoseerd</option>
+    <option value="water_more">Te veel water gedoseerd</option>
+  </select>
+</div>
+
+<!-- 4. Vetgehalte toe te voegen room/vet -->
+<div class="form-group" id="creamFatGroup">
+  <label id="creamFatLabel" for="creamFat">Vetgehalte toe te voegen room (%):</label>
+  <input type="number" id="creamFat" placeholder="bijv. 43.00" step="0.01" oninput="calculate()">
+</div>
+
+<!-- Sub-Tabs & Resultaat Sectie -->
+<div class="tabs-wrapper" style="margin-top: 16px;">
+  <div class="tab-buttons">
+    <button class="tab-btn active" onclick="switchSubTab('tab-resultat')">Resultaat</button>
+    <button class="tab-btn" onclick="switchSubTab('tab-berekening')">Berekening</button>
+  </div>
+
+  <div class="tab-content-container">
+    <!-- Sub-Tab 1: Resultaat -->
+    <div id="tab-resultat" class="tab-content active">
+      <div id="errorSection"></div>
+
+      <div style="margin-bottom: 12px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span id="actualBatchLabel" style="font-size: 0.85rem; color: #555;">Vermoedelijke werkelijke batchgrootte:</span>
+          <span id="actualBatchValue" class="result-value" style="font-size: 1.1rem; color: var(--primary);">0 kg</span>
+        </div>
+        <button type="button" class="btn-apply-batch" onclick="toggleBatchSizeState()" title="Overnemen als geplande batchgrootte">
+          ↺ Overnemen als geplande batch
+        </button>
+      </div>
+
+      <hr style="border:0; border-top: 1px solid var(--border-blue); margin: 14px 0;">
+
+      <div class="result-row" id="rowAddIngredient">
+        <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+          <span id="addLabel">Hoeveelheid room toevoegen:</span>
+          <span class="info-icon" onclick="toggleAddTooltip()" title="Klik voor meer informatie">?</span>
+        </div>
+        <span id="addValue" class="result-value">0 kg</span>
+      </div>
+      <div id="addTooltip" class="info-tooltip" style="margin-bottom: 10px;">
+        <strong>Let op:</strong> 100% Room toevoegen zonder water inspoel!
+      </div>
+
+      <div class="result-row" id="rowAddWater">
+        <span>Hoeveelheid water toevoegen:</span>
+        <span id="waterToAdd" class="result-value">0 kg</span>
+      </div>
+      <div class="result-row" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border-blue);">
+        <span>Totale grootte batch na correctie:</span>
+        <span id="totalBatch" class="result-value">0 kg</span>
+      </div>
+    </div>
+
+    <!-- Sub-Tab 2: Berekening in stappen -->
+    <div id="tab-berekening" class="tab-content">
+      <div class="section-title">1. Analyse werkelijke batch inhoud</div>
+      <div id="actualBatchDetails">
+        <p style="margin:0; font-style:italic; color:#666;">Vul de gegevens in om de werkelijke batchberekening te zien.</p>
+      </div>
+
+      <hr style="border:0; border-top: 2px dashed #b6d4fe; margin: 18px 0;">
+
+      <div class="section-title">2. Correctie berekening stappen</div>
+      <div id="calcSteps">
+        <p style="margin:0; font-style:italic; color:#666;">Vul de gegevens in om de berekening in stappen te zien.</p>
+      </div>
+    </div>
+  </div>
+</div>
