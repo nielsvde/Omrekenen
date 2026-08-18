@@ -1,73 +1,111 @@
-<script>
-  // Dynamisch inladen van tabbladen via fetch en direct herberekenen indien nodig
-  async function switchTab(tabId, btnElement) {
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculator App</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#ffffff">
+</head>
+<body>
 
-    btnElement.classList.add('active');
-    const targetTab = document.getElementById(tabId);
-    targetTab.classList.add('active');
+  <!-- Hoofdcontainer voor tabbladen -->
+  <div class="main-container">
+    <div class="tab-navigation">
+      <button class="tab-btn active" onclick="switchTab('tab-calculator', this)">Calculator</button>
+      <button class="tab-btn" onclick="switchTab('tab-nieuw', this)">Evap / Lattiz</button>
+    </div>
 
-    // Als we naar de calculator gaan en deze is al geladen, voer dan direct calculate() uit
-    if (tabId === 'tab-calculator' && targetTab.innerHTML.trim() !== '') {
-      if (typeof calculate === 'function') {
-        calculate();
-      }
-      return;
-    }
+    <div id="tab-calculator" class="tab-content active">
+      <!-- Wordt dynamisch ingeladen -->
+    </div>
+    <div id="tab-nieuw" class="tab-content">
+      <!-- Wordt dynamisch ingeladen -->
+    </div>
+  </div>
 
-    if (targetTab.innerHTML.trim() === '') {
-      let fileName = '';
-      if (tabId === 'tab-calculator') fileName = 'tab-calculator.html';
-      if (tabId === 'tab-nieuw') fileName = 'tab-nieuw.html';
+  <!-- PWA Installatie knop / instructie -->
+  <div style="text-align: center; margin-top: 20px;">
+    <button id="installBtn" style="display: none; padding: 10px 20px; background-color: var(--primary); color: #fff; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">App installeren</button>
+    <div id="iosInstruction" style="display: none; margin-top: 10px; font-size: 0.85rem; color: #555; padding: 0 15px;">
+      Om deze app te installeren op je iPhone/iPad, tik op het deel-icoon in Safari en kies <strong>'Zet op beginscherm'</strong>.
+    </div>
+  </div>
 
-      try {
-        const response = await fetch(fileName);
-        if (!response.ok) throw new Error('Kan bestand niet laden');
-        const html = await response.text();
-        targetTab.innerHTML = html;
+  <script src="app.js"></script>
+  <script>
+    // Dynamisch inladen van tabbladen via fetch en direct herberekenen indien nodig
+    async function switchTab(tabId, btnElement) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
 
-        if (tabId === 'tab-calculator' && typeof calculate === 'function') {
+      btnElement.classList.add('active');
+      const targetTab = document.getElementById(tabId);
+      targetTab.classList.add('active');
+
+      // Als we naar de calculator gaan en deze is al geladen, voer dan direct calculate() uit
+      if (tabId === 'tab-calculator' && targetTab.innerHTML.trim() !== '') {
+        if (typeof calculate === 'function') {
           calculate();
         }
-      } catch (err) {
-        targetTab.innerHTML = '<p style="color:red; padding:10px;">Fout bij het laden van dit tabblad.</p>';
+        return;
+      }
+
+      if (targetTab.innerHTML.trim() === '') {
+        let fileName = '';
+        if (tabId === 'tab-calculator') fileName = 'tab-calculator.html';
+        if (tabId === 'tab-nieuw') fileName = 'tab-nieuw.html';
+
+        try {
+          const response = await fetch(fileName);
+          if (!response.ok) throw new Error('Kan bestand niet laden');
+          const html = await response.text();
+          targetTab.innerHTML = html;
+
+          if (tabId === 'tab-calculator' && typeof calculate === 'function') {
+            calculate();
+          }
+        } catch (err) {
+          targetTab.innerHTML = '<p style="color:red; padding:10px;">Fout bij het laden van dit tabblad.</p>';
+        }
       }
     }
-  }
 
-  window.addEventListener('DOMContentLoaded', () => {
-    switchTab('tab-calculator', document.querySelector('.tab-btn'));
-  });
+    window.addEventListener('DOMContentLoaded', () => {
+      switchTab('tab-calculator', document.querySelector('.tab-btn'));
+    });
 
-  let deferredPrompt;
-  const installBtn = document.getElementById('installBtn');
-  const iosInstruction = document.getElementById('iosInstruction');
+    let deferredPrompt;
+    const installBtn = document.getElementById('installBtn');
+    const iosInstruction = document.getElementById('iosInstruction');
 
-  const isIos = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
-  const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
+    const isIos = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
+    const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
 
-  if (!isStandalone) {
-    if (isIos) {
-      installBtn.style.display = 'block';
-      installBtn.addEventListener('click', () => {
-        iosInstruction.style.display = iosInstruction.style.display === 'none' ? 'block' : 'none';
-      });
+    if (!isStandalone) {
+      if (isIos) {
+        installBtn.style.display = 'block';
+        installBtn.addEventListener('click', () => {
+          iosInstruction.style.display = iosInstruction.style.display === 'none' ? 'block' : 'none';
+        });
+      }
     }
-  }
 
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    installBtn.style.display = 'block';
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      installBtn.style.display = 'block';
 
-    installBtn.addEventListener('click', () => {
-      iosInstruction.style.display = 'none';
-      deferredPrompt.prompt();
-      deferredPrompt.userChoice.then(() => {
-        deferredPrompt = null;
-        installBtn.style.display = 'none';
+      installBtn.addEventListener('click', () => {
+        iosInstruction.style.display = 'none';
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then(() => {
+          deferredPrompt = null;
+          installBtn.style.display = 'none';
+        });
       });
     });
-  });
-</script>
+  </script>
+</body>
+</html>
