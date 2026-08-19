@@ -115,18 +115,18 @@
       <label for="batchSize">Geplande batchgrootte (kg):</label>
       <span class="info-icon" onclick="toggleTooltip('batchTooltip')">?</span>
     </div>
-    <input type="text" inputmode="decimal" id="batchSize" placeholder="bijv. 4210" oninput="calculate()">
+    <input type="text" inputmode="decimal" id="batchSize" placeholder="bijv. 3517" oninput="formatInput(this); calculate()">
     <div id="batchTooltip" class="info-tooltip"><strong>Let op:</strong> De werkelijke batchgrootte kan afwijken als een grondstof onvolledig is gedoseerd!</div>
   </div>
 
   <div class="form-group">
     <label for="currentFat">Gemeten vetgehalte batch (%):</label>
-    <input type="text" inputmode="decimal" id="currentFat" placeholder="bijv. 27.42" oninput="calculate()">
+    <input type="text" inputmode="decimal" id="currentFat" placeholder="bijv. 27.42" oninput="formatInput(this); calculate()">
   </div>
 
   <div class="form-group">
     <label for="targetFat">Gewenst vetgehalte (%):</label>
-    <input type="text" inputmode="decimal" id="targetFat" placeholder="bijv. 30.00" oninput="calculate()">
+    <input type="text" inputmode="decimal" id="targetFat" placeholder="bijv. 30.00" oninput="formatInput(this); calculate()">
   </div>
 
   <div class="form-group">
@@ -143,7 +143,7 @@
 
   <div class="form-group" id="creamFatGroup">
     <label id="creamFatLabel" for="creamFat">Vetgehalte toe te voegen room (%):</label>
-    <input type="text" inputmode="decimal" id="creamFat" placeholder="bijv. 43.00" oninput="calculate()">
+    <input type="text" inputmode="decimal" id="creamFat" placeholder="bijv. 43.1" oninput="formatInput(this); calculate()">
   </div>
 
   <div class="tabs-wrapper">
@@ -210,10 +210,18 @@
 <script>
   let computedActualTotal = 0, originalBatchSize = null, isApplied = false;
 
+  // Zet direct tijdens het typen een komma om naar een punt
+  function formatInput(input) {
+    if (input.value.includes(',')) {
+      const cursorPos = input.selectionStart;
+      input.value = input.value.replace(/,/g, '.');
+      input.setSelectionRange(cursorPos, cursorPos);
+    }
+  }
+
   function parseNum(val) {
     if (!val) return 0;
-    // Vervang komma door punt en zet om naar getal
-    return parseFloat(val.toString().replace(',', '.')) || 0;
+    return parseFloat(val.toString()) || 0;
   }
 
   function toggleTooltip(id) {
@@ -335,7 +343,6 @@
     document.getElementById('totalBatch').innerText = Math.round(activeBatchSize + addAmount + waterToAdd) + ' kg';
     document.getElementById('calcSteps').innerHTML = stepsHtml || '<p style="margin:0; color:#666;">Vul gegevens in.</p>';
 
-    // Werkelijke batch analyse
     const actualBatchLabelEl = document.getElementById('actualBatchLabel');
     const actualBatchValueEl = document.getElementById('actualBatchValue');
     const detailsEl = document.getElementById('actualBatchDetails');
