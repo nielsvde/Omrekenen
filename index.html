@@ -115,18 +115,18 @@
       <label for="batchSize">Geplande batchgrootte (kg):</label>
       <span class="info-icon" onclick="toggleTooltip('batchTooltip')">?</span>
     </div>
-    <input type="number" id="batchSize" placeholder="bijv. 4210" step="1" oninput="calculate()">
+    <input type="text" inputmode="decimal" id="batchSize" placeholder="bijv. 4210" oninput="calculate()">
     <div id="batchTooltip" class="info-tooltip"><strong>Let op:</strong> De werkelijke batchgrootte kan afwijken als een grondstof onvolledig is gedoseerd!</div>
   </div>
 
   <div class="form-group">
     <label for="currentFat">Gemeten vetgehalte batch (%):</label>
-    <input type="number" id="currentFat" placeholder="bijv. 27.42" step="0.01" oninput="calculate()">
+    <input type="text" inputmode="decimal" id="currentFat" placeholder="bijv. 27.42" oninput="calculate()">
   </div>
 
   <div class="form-group">
     <label for="targetFat">Gewenst vetgehalte (%):</label>
-    <input type="number" id="targetFat" placeholder="bijv. 30.00" step="0.01" oninput="calculate()">
+    <input type="text" inputmode="decimal" id="targetFat" placeholder="bijv. 30.00" oninput="calculate()">
   </div>
 
   <div class="form-group">
@@ -143,7 +143,7 @@
 
   <div class="form-group" id="creamFatGroup">
     <label id="creamFatLabel" for="creamFat">Vetgehalte toe te voegen room (%):</label>
-    <input type="number" id="creamFat" placeholder="bijv. 43.00" step="0.01" oninput="calculate()">
+    <input type="text" inputmode="decimal" id="creamFat" placeholder="bijv. 43.00" oninput="calculate()">
   </div>
 
   <div class="tabs-wrapper">
@@ -210,6 +210,12 @@
 <script>
   let computedActualTotal = 0, originalBatchSize = null, isApplied = false;
 
+  function parseNum(val) {
+    if (!val) return 0;
+    // Vervang komma door punt en zet om naar getal
+    return parseFloat(val.toString().replace(',', '.')) || 0;
+  }
+
   function toggleTooltip(id) {
     const el = document.getElementById(id);
     el.style.display = el.style.display === 'block' ? 'none' : 'block';
@@ -240,7 +246,7 @@
   function toggleBatchSizeState() {
     const batchInput = document.getElementById('batchSize');
     if (!isApplied && computedActualTotal > 0) {
-      originalBatchSize = parseFloat(batchInput.value.replace(',', '.')) || 0;
+      originalBatchSize = parseNum(batchInput.value);
       batchInput.value = Math.round(computedActualTotal);
       isApplied = true;
     } else if (isApplied && originalBatchSize !== null) {
@@ -261,21 +267,20 @@
   }
 
   function calculate() {
-    const inputBatchSize = parseFloat(document.getElementById('batchSize').value.replace(',', '.')) || 0;
-    const currentFat = parseFloat(document.getElementById('currentFat').value.replace(',', '.')) || 0;
-    const targetFat = parseFloat(document.getElementById('targetFat').value.replace(',', '.')) || 0;
+    const inputBatchSize = parseNum(document.getElementById('batchSize').value);
+    const currentFat = parseNum(document.getElementById('currentFat').value);
+    const targetFat = parseNum(document.getElementById('targetFat').value);
     const missingComponent = document.getElementById('missingComponent').value;
     const activeBatchSize = (isApplied && computedActualTotal > 0) ? Math.round(computedActualTotal) : inputBatchSize;
 
     let additionType = 'cream';
-    let effectiveCreamFat = parseFloat(document.getElementById('creamFat').value.replace(',', '.')) || 0;
+    let effectiveCreamFat = parseNum(document.getElementById('creamFat').value);
 
     if (missingComponent.startsWith('fat')) { additionType = 'fat'; effectiveCreamFat = 100; }
     else if (missingComponent.startsWith('water')) { additionType = 'water'; }
 
     const rowAddIngredient = document.getElementById('rowAddIngredient');
     const rowAddWater = document.getElementById('rowAddWater');
-    const addTooltip = document.getElementById('addTooltip');
     const errorSection = document.getElementById('errorSection');
 
     let addAmount = 0, waterToAdd = 0, stepsHtml = '';
@@ -308,7 +313,7 @@
         rowAddWater.style.display = 'none';
         if (effectiveCreamFat > targetFat) {
           addAmount = ((targetFat - currentFat) / (effectiveCreamFat - targetFat)) * activeBatchSize;
-          const currentFatKg = (activeBatchSize * currentFat) / 100, addFatKg = (addAmount * effectiveCreamFat) / 100;
+          const currentFatKg = (activeBatchSize * currentFat) / 100;
           stepsHtml = `
             <div class="calc-step"><strong>Stap 1: Huidige vet</strong><br>${activeBatchSize} kg × ${currentFat}% = ${currentFatKg.toFixed(2)} kg</div>
             <div class="calc-step"><strong>Stap 2: Benodigde ${ingredientName}</strong><br><strong>${Math.round(addAmount)} kg</strong></div>
@@ -381,14 +386,11 @@
     const inputs = Array.from(document.querySelectorAll('input:not([type="hidden"]), select'));
     inputs.forEach((input, index) => {
       input.addEventListener('keydown', e => {
-        // Enter of Pijltje omlaag -> naar volgende veld
         if (e.key === 'Enter' || e.key === 'ArrowDown') {
           e.preventDefault();
           let next = inputs[index + 1];
           if (next) { next.focus(); if (next.select) next.select(); }
-        }
-        // Pijltje omhoog -> naar vorige veld
-        else if (e.key === 'ArrowUp') {
+        } else if (e.key === 'ArrowUp') {
           e.preventDefault();
           let prev = inputs[index - 1];
           if (prev) { prev.focus(); if (prev.select) prev.select(); }
