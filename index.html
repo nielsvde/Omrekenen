@@ -240,7 +240,7 @@
   function toggleBatchSizeState() {
     const batchInput = document.getElementById('batchSize');
     if (!isApplied && computedActualTotal > 0) {
-      originalBatchSize = parseFloat(batchInput.value) || 0;
+      originalBatchSize = parseFloat(batchInput.value.replace(',', '.')) || 0;
       batchInput.value = Math.round(computedActualTotal);
       isApplied = true;
     } else if (isApplied && originalBatchSize !== null) {
@@ -261,14 +261,14 @@
   }
 
   function calculate() {
-    const inputBatchSize = parseFloat(document.getElementById('batchSize').value) || 0;
-    const currentFat = parseFloat(document.getElementById('currentFat').value) || 0;
-    const targetFat = parseFloat(document.getElementById('targetFat').value) || 0;
+    const inputBatchSize = parseFloat(document.getElementById('batchSize').value.replace(',', '.')) || 0;
+    const currentFat = parseFloat(document.getElementById('currentFat').value.replace(',', '.')) || 0;
+    const targetFat = parseFloat(document.getElementById('targetFat').value.replace(',', '.')) || 0;
     const missingComponent = document.getElementById('missingComponent').value;
     const activeBatchSize = (isApplied && computedActualTotal > 0) ? Math.round(computedActualTotal) : inputBatchSize;
 
     let additionType = 'cream';
-    let effectiveCreamFat = parseFloat(document.getElementById('creamFat').value) || 0;
+    let effectiveCreamFat = parseFloat(document.getElementById('creamFat').value.replace(',', '.')) || 0;
 
     if (missingComponent.startsWith('fat')) { additionType = 'fat'; effectiveCreamFat = 100; }
     else if (missingComponent.startsWith('water')) { additionType = 'water'; }
@@ -381,10 +381,17 @@
     const inputs = Array.from(document.querySelectorAll('input:not([type="hidden"]), select'));
     inputs.forEach((input, index) => {
       input.addEventListener('keydown', e => {
-        if (e.key === 'Enter') {
+        // Enter of Pijltje omlaag -> naar volgende veld
+        if (e.key === 'Enter' || e.key === 'ArrowDown') {
           e.preventDefault();
           let next = inputs[index + 1];
           if (next) { next.focus(); if (next.select) next.select(); }
+        }
+        // Pijltje omhoog -> naar vorige veld
+        else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          let prev = inputs[index - 1];
+          if (prev) { prev.focus(); if (prev.select) prev.select(); }
         }
       });
     });
