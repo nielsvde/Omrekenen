@@ -81,10 +81,12 @@
     .footer-actions { margin-top: 24px; display: flex; flex-direction: column; gap: 10px; align-items: center; }
     .feedback-link { display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem; color: #6c757d; text-decoration: none; padding: 6px 12px; border-radius: 6px; }
     .feedback-link:hover { background: #e9ecef; color: var(--primary); }
-    .btn-install, .ios-box { display: none; width: 100%; padding: 12px; border-radius: 8px; box-sizing: border-box; }
+    
+    /* Zorg dat de installatieknop en instructieboxstandaard zichtbaar zijn */
+    .btn-install, .ios-box { width: 100%; padding: 12px; border-radius: 8px; box-sizing: border-box; display: block; }
     .btn-install { background: var(--primary); color: white; border: none; font-size: 0.95rem; font-weight: bold; cursor: pointer; }
     .btn-install:hover { background: var(--primary-hover); }
-    .ios-box { background: #e9ecef; font-size: 0.85rem; text-align: center; line-height: 1.4; }
+    .ios-box { background: #e9ecef; color: #333; font-size: 0.85rem; text-align: center; line-height: 1.4; display: none; margin-top: 8px; }
   </style>
 
   <script>
@@ -203,14 +205,16 @@
       💡 Tip of fout melden
     </a>
     <button id="installBtn" class="btn-install">📲 Installeer app</button>
-    <div id="iosInstruction" class="ios-box">Tik onderaan op het <strong>Deel-icoon</strong> <span style="font-size: 1.1rem;">⎋</span> en kies <strong>'Zet op home-scherm'</strong>.</div>
+    <div id="iosInstruction" class="ios-box">
+      <strong>Instructie voor iPhone/iPad:</strong><br>
+      Tik onderaan in Safari op het <strong>Deel-icoon</strong> <span style="font-size: 1.1rem;">⎋</span> en kies <strong>'Zet op beginscherm'</strong>.
+    </div>
   </div>
 </div>
 
 <script>
   let computedActualTotal = 0, originalBatchSize = null, isApplied = false;
 
-  // Zet direct tijdens het typen een komma om naar een punt
   function formatInput(input) {
     if (input.value.includes(',')) {
       const cursorPos = input.selectionStart;
@@ -406,23 +410,39 @@
     });
   });
 
+  // Robuuste installatie-logica: Knop is er altijd
   let deferredPrompt;
-  const installBtn = document.getElementById('installBtn'), iosInstruction = document.getElementById('iosInstruction');
+  const installBtn = document.getElementById('installBtn');
+  const iosInstruction = document.getElementById('iosInstruction');
   const isIos = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
   const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
 
-  if (!isStandalone && isIos) {
-    installBtn.style.display = 'block';
-    installBtn.addEventListener('click', () => iosInstruction.style.display = iosInstruction.style.display === 'none' ? 'block' : 'none');
+  // Als de app al is geïnstalleerd, verberg de knop automatisch
+  if (isStandalone) {
+    installBtn.style.display = 'none';
   }
+
   window.addEventListener('beforeinstallprompt', e => {
-    e.preventDefault(); deferredPrompt = e;
-    installBtn.style.display = 'block';
-    installBtn.addEventListener('click', () => {
-      iosInstruction.style.display = 'none';
+    e.preventDefault();
+    deferredPrompt = e;
+  });
+
+  installBtn.addEventListener('click', async () => {
+    if (isIos) {
+      // Toon/verberg de iPhone instructies
+      iosInstruction.style.display = iosInstruction.style.display === 'block' ? 'none' : 'block';
+    } else if (deferredPrompt) {
+      // Android / Desktop automatische installatie starten
       deferredPrompt.prompt();
-      deferredPrompt.userChoice.then(() => { deferredPrompt = null; installBtn.style.display = 'none'; });
-    });
+      const choiceResult = await deferredPrompt.userChoice;
+      if (choiceResult.outcome === 'accepted') {
+        console.log('App geïnstalleerd');
+      }
+      deferredPrompt = null;
+    } else {
+      // Fallback als de browser het 'beforeinstallprompt' event nog niet heeft gestuurd
+      alert('Om deze app te installeren:\n\n- Open het menu van je browser (3 puntjes rechtsboven).\n- Kies voor "App installeren" of "Toevoegen aan startscherm".');
+    }
   });
 </script>
 
