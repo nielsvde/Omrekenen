@@ -82,7 +82,6 @@
     .feedback-link { display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem; color: #6c757d; text-decoration: none; padding: 6px 12px; border-radius: 6px; }
     .feedback-link:hover { background: #e9ecef; color: var(--primary); }
     
-    /* Zorg dat de installatieknop en instructieboxstandaard zichtbaar zijn */
     .btn-install, .ios-box { width: 100%; padding: 12px; border-radius: 8px; box-sizing: border-box; display: block; }
     .btn-install { background: var(--primary); color: white; border: none; font-size: 0.95rem; font-weight: bold; cursor: pointer; }
     .btn-install:hover { background: var(--primary-hover); }
@@ -215,6 +214,7 @@
 <script>
   let computedActualTotal = 0, originalBatchSize = null, isApplied = false;
 
+  // Zet direct tijdens het typen een eventuele komma om naar een punt
   function formatInput(input) {
     if (input.value.includes(',')) {
       const cursorPos = input.selectionStart;
@@ -223,9 +223,11 @@
     }
   }
 
+  // Verbeterde parseNum: vervangt voor de zekerheid áltijd komma's door punten vóórdat het getal gelezen wordt
   function parseNum(val) {
     if (!val) return 0;
-    return parseFloat(val.toString()) || 0;
+    const cleanVal = val.toString().replace(/,/g, '.');
+    return parseFloat(cleanVal) || 0;
   }
 
   function toggleTooltip(id) {
@@ -410,14 +412,12 @@
     });
   });
 
-  // Robuuste installatie-logica: Knop is er altijd
   let deferredPrompt;
   const installBtn = document.getElementById('installBtn');
   const iosInstruction = document.getElementById('iosInstruction');
   const isIos = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
   const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
 
-  // Als de app al is geïnstalleerd, verberg de knop automatisch
   if (isStandalone) {
     installBtn.style.display = 'none';
   }
@@ -429,10 +429,8 @@
 
   installBtn.addEventListener('click', async () => {
     if (isIos) {
-      // Toon/verberg de iPhone instructies
       iosInstruction.style.display = iosInstruction.style.display === 'block' ? 'none' : 'block';
     } else if (deferredPrompt) {
-      // Android / Desktop automatische installatie starten
       deferredPrompt.prompt();
       const choiceResult = await deferredPrompt.userChoice;
       if (choiceResult.outcome === 'accepted') {
@@ -440,7 +438,6 @@
       }
       deferredPrompt = null;
     } else {
-      // Fallback als de browser het 'beforeinstallprompt' event nog niet heeft gestuurd
       alert('Om deze app te installeren:\n\n- Open het menu van je browser (3 puntjes rechtsboven).\n- Kies voor "App installeren" of "Toevoegen aan startscherm".');
     }
   });
