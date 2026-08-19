@@ -116,7 +116,7 @@
       <label for="batchSize">Geplande batchgrootte (kg):</label>
       <span class="info-icon" onclick="toggleTooltip('batchTooltip')">?</span>
     </div>
-    <input type="text" inputmode="decimal" id="batchSize" placeholder="bijv. 3517" oninput="formatInput(this); calculate()">
+    <input type="text" inputmode="decimal" id="batchSize" placeholder="bijv. 3517" oninput="formatInput(this); checkIfManuallyEdited(); calculate()">
     <div id="batchTooltip" class="info-tooltip"><strong>Let op:</strong> De werkelijke batchgrootte kan afwijken als een grondstof onvolledig is gedoseerd!</div>
   </div>
 
@@ -214,7 +214,6 @@
 <script>
   let computedActualTotal = 0, originalBatchSize = null, isApplied = false;
 
-  // Zet direct tijdens het typen een eventuele komma om naar een punt
   function formatInput(input) {
     if (input.value.includes(',')) {
       const cursorPos = input.selectionStart;
@@ -223,7 +222,6 @@
     }
   }
 
-  // Verbeterde parseNum: vervangt voor de zekerheid áltijd komma's door punten vóórdat het getal gelezen wordt
   function parseNum(val) {
     if (!val) return 0;
     const cleanVal = val.toString().replace(/,/g, '.');
@@ -257,10 +255,23 @@
     calculate();
   }
 
+  // Als de gebruiker handmatig in het batch-veld typt terwijl het overgenomen was, reset de 'applied' status netjes
+  function checkIfManuallyEdited() {
+    if (isApplied) {
+      const currentInputVal = parseNum(document.getElementById('batchSize').value);
+      if (currentInputVal !== Math.round(computedActualTotal)) {
+        isApplied = false;
+        originalBatchSize = null;
+      }
+    }
+  }
+
   function toggleBatchSizeState() {
     const batchInput = document.getElementById('batchSize');
     if (!isApplied && computedActualTotal > 0) {
-      originalBatchSize = parseNum(batchInput.value);
+      if (originalBatchSize === null) {
+        originalBatchSize = parseNum(batchInput.value);
+      }
       batchInput.value = Math.round(computedActualTotal);
       isApplied = true;
     } else if (isApplied && originalBatchSize !== null) {
@@ -285,7 +296,9 @@
     const currentFat = parseNum(document.getElementById('currentFat').value);
     const targetFat = parseNum(document.getElementById('targetFat').value);
     const missingComponent = document.getElementById('missingComponent').value;
-    const activeBatchSize = (isApplied && computedActualTotal > 0) ? Math.round(computedActualTotal) : inputBatchSize;
+    
+    // Bepaal welke batchgrootte als basis dient voor de berekening
+    const activeBatchSize = (isApplied && computedActualTotal > 0) ? computedActualTotal : inputBatchSize;
 
     let additionType = 'cream';
     let effectiveCreamFat = parseNum(document.getElementById('creamFat').value);
@@ -329,7 +342,7 @@
           addAmount = ((targetFat - currentFat) / (effectiveCreamFat - targetFat)) * activeBatchSize;
           const currentFatKg = (activeBatchSize * currentFat) / 100;
           stepsHtml = `
-            <div class="calc-step"><strong>Stap 1: Huidige vet</strong><br>${activeBatchSize} kg × ${currentFat}% = ${currentFatKg.toFixed(2)} kg</div>
+            <div class="calc-step"><strong>Stap 1: Huidige vet</strong><br>${Math.round(activeBatchSize)} kg × ${currentFat}% = ${currentFatKg.toFixed(2)} kg</div>
             <div class="calc-step"><strong>Stap 2: Benodigde ${ingredientName}</strong><br><strong>${Math.round(addAmount)} kg</strong></div>
             <div class="calc-step"><strong>Stap 3 & 4: Totaal</strong><br>Batch: <strong>${Math.round(activeBatchSize + addAmount)} kg</strong></div>`;
         }
@@ -354,9 +367,11 @@
     const detailsEl = document.getElementById('actualBatchDetails');
     const applyButton = document.querySelector('.btn-apply-batch');
 
-    if (!hasError && inputBatchSize > 0 && currentFat > 0 && targetFat > 0 && (effectiveCreamFat > 0 || missingComponent.startsWith('water'))) {
+    const baseForActualCalc = isApplied && originalBatchSize !== null ? originalBatchSize : inputBatchSize;
+
+    if (!hasError && baseForActualCalc > 0 && currentFat > 0 && targetFat > 0 && (effectiveCreamFat > 0 || missingComponent.startsWith('water'))) {
       let calcCreamFat = (missingComponent.startsWith('water') && effectiveCreamFat === 0) ? 43 : effectiveCreamFat;
-      const plannedWater = inputBatchSize - (((inputBatchSize * targetFat) / 100) / calcCreamFat) * 100;
+      const plannedWater = baseForActualCalc - (((baseForActualCalc * targetFat) / 100) / calcCreamFat) * 100;
       
       let actualTotal = 0, actualIngredient = 0, actualWater = 0;
       if (['cream_less', 'cream_more', 'fat_less', 'fat_more'].includes(missingComponent)) {
@@ -364,22 +379,22 @@
         actualTotal = actualWater / (1 - (currentFat / calcCreamFat));
         actualIngredient = actualTotal - actualWater;
       } else {
-        actualIngredient = (((inputBatchSize * targetFat) / 100) / calcCreamFat) * 100;
+        actualIngredient = (((baseForActualCalc * targetFat) / 100) / calcCreamFat) * 100;
         actualTotal = ((actualIngredient * calcCreamFat) / 100) / (currentFat / 100);
         actualWater = actualTotal - actualIngredient;
       }
       computedActualTotal = actualTotal;
 
-      const diffTotal = actualTotal - inputBatchSize;
+      const diffTotal = actualTotal - baseForActualCalc;
       actualBatchLabelEl.innerText = isApplied ? 'Origineel geplande batchgrootte:' : 'Vermoedelijke werkelijke batchgrootte:';
       actualBatchValueEl.innerText = Math.round(isApplied ? originalBatchSize : actualTotal) + ' kg';
 
       detailsEl.innerHTML = `
-        <div class="result-row"><span>Gepland water / ${ingredientName}:</span><span class="result-value">${Math.round(plannedWater)} kg / ${Math.round(inputBatchSize - plannedWater)} kg</span></div>
+        <div class="result-row"><span>Gepland water / ${ingredientName}:</span><span class="result-value">${Math.round(plannedWater)} kg / ${Math.round(baseForActualCalc - plannedWater)} kg</span></div>
         <div class="result-row"><span>Werkelijk water / ${ingredientName}:</span><span class="result-value">${Math.round(actualWater)} kg / ${Math.round(actualIngredient)} kg</span></div>
         <div class="result-row" style="margin-top: 6px;"><span>Verschil totaal:</span><span class="result-value" style="color:${Math.abs(diffTotal) < 0.5 ? '#27ae60' : '#c0392b'}">${diffTotal > 0 ? '+' : ''}${Math.round(diffTotal)} kg</span></div>`;
     } else {
-      computedActualTotal = 0;
+      if (!isApplied) computedActualTotal = 0;
       actualBatchLabelEl.innerText = isApplied ? 'Origineel geplande batchgrootte:' : 'Vermoedelijke werkelijke batchgrootte:';
       actualBatchValueEl.innerText = (isApplied && originalBatchSize !== null) ? Math.round(originalBatchSize) + ' kg' : '0 kg';
       detailsEl.innerHTML = '<p style="margin:0; font-style:italic; color:#666;">Vul vereiste velden in.</p>';
