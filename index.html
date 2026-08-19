@@ -26,15 +26,25 @@
     }
     @media (min-width: 480px) { body { padding: 20px; } .card { padding: 24px; } }
     
-    .header-container { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; text-align: left; }
+    .header-container { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 20px; text-align: left; }
     .header-branding { display: flex; align-items: center; gap: 12px; }
     .header-logo { height: 48px; width: auto; object-fit: contain; flex-shrink: 0; }
     .header-text-img { height: 38px; width: auto; object-fit: contain; }
-    .btn-reset-header {
+    .header-buttons { display: flex; gap: 6px; }
+    .btn-header-action {
       background: #f1f3f5; border: 1px solid #ced4da; color: #495057; border-radius: 8px;
       padding: 6px 10px; font-size: 0.8rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px;
     }
-    .btn-reset-header:hover { background: #e9ecef; color: #212529; }
+    .btn-header-action:hover { background: #e9ecef; color: #212529; }
+
+    /* Instellingen paneel */
+    #settingsPanel {
+      display: none; background: #fff3cd; border: 1px solid #ffeeba; border-radius: 10px;
+      padding: 14px; margin-bottom: 20px; text-align: left; font-size: 0.85rem;
+    }
+    .settings-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; gap: 10px; }
+    .settings-row:last-child { margin-bottom: 0; }
+    .settings-row input { width: 80px !important; padding: 6px !important; font-size: 0.85rem !important; text-align: right; }
 
     /* Hoofdnavigatie voor de tools */
     .main-tabs { display: flex; gap: 8px; margin-bottom: 20px; }
@@ -127,7 +137,35 @@
       <img src="logo.png" alt="Logo" class="header-logo">
       <img src="logotekst.png" alt="Product correctie calculator" class="header-text-img">
     </div>
-    <button type="button" class="btn-reset-header" onclick="resetCalculator()" title="Wis alle invoer">↺ Reset</button>
+    <div class="header-buttons">
+      <button type="button" class="btn-header-action" onclick="toggleSettings()" title="Instellingen factoren">⚙️</button>
+      <button type="button" class="btn-header-action" onclick="resetCalculator()" title="Wis alle invoer">↺ Reset</button>
+    </div>
+  </div>
+
+  <!-- Verborgen Instellingen Paneel -->
+  <div id="settingsPanel">
+    <div class="section-title" style="margin-bottom: 8px;">Factoren Instellingen</div>
+    <div class="settings-row">
+      <span>Factor Product Opbrengst (standaard 1.08):</span>
+      <input type="text" inputmode="decimal" id="facYield" value="1.08" oninput="formatInput(this); calculateLattiz()">
+    </div>
+    <div class="settings-row">
+      <span>Factor Water te boeken (standaard 0.01):</span>
+      <input type="text" inputmode="decimal" id="facWater" value="0.01" oninput="formatInput(this); calculateLattiz()">
+    </div>
+    <div class="settings-row">
+      <span>Factor Evap te boeken (standaard 0.99):</span>
+      <input type="text" inputmode="decimal" id="facEvap" value="0.99" oninput="formatInput(this); calculateLattiz()">
+    </div>
+    <div class="settings-row">
+      <span>Factor Verpakking naar Bulk (standaard 4):</span>
+      <input type="text" inputmode="decimal" id="facPkgMult" value="4" oninput="formatInput(this); calculateLattiz()">
+    </div>
+    <div class="settings-row">
+      <span>Factor Marge/Toeslag Bulk (standaard 1.1):</span>
+      <input type="text" inputmode="decimal" id="facBulkMult" value="1.1" oninput="formatInput(this); calculateLattiz()">
+    </div>
   </div>
   
   <!-- Hoofdnavigatie voor de tools -->
@@ -302,12 +340,34 @@
 <script>
   let computedActualTotal = 0, originalBatchSize = null, isApplied = false;
 
+  function toggleSettings() {
+    const panel = document.getElementById('settingsPanel');
+    panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+  }
+
   function formatInput(input) {
     if (input.value.includes(',')) {
       const cursorPos = input.selectionStart;
       input.value = input.value.replace(/,/g, '.');
       input.setSelectionRange(cursorPos, cursorPos);
     }
+    saveSettings();
+  }
+
+  function saveSettings() {
+    localStorage.setItem('facYield', document.getElementById('facYield').value);
+    localStorage.setItem('facWater', document.getElementById('facWater').value);
+    localStorage.setItem('facEvap', document.getElementById('facEvap').value);
+    localStorage.setItem('facPkgMult', document.getElementById('facPkgMult').value);
+    localStorage.setItem('facBulkMult', document.getElementById('facBulkMult').value);
+  }
+
+  function loadSettings() {
+    if(localStorage.getItem('facYield')) document.getElementById('facYield').value = localStorage.getItem('facYield');
+    if(localStorage.getItem('facWater')) document.getElementById('facWater').value = localStorage.getItem('facWater');
+    if(localStorage.getItem('facEvap')) document.getElementById('facEvap').value = localStorage.getItem('facEvap');
+    if(localStorage.getItem('facPkgMult')) document.getElementById('facPkgMult').value = localStorage.getItem('facPkgMult');
+    if(localStorage.getItem('facBulkMult')) document.getElementById('facBulkMult').value = localStorage.getItem('facBulkMult');
   }
 
   function formatDecimals(input, decimals) {
@@ -418,16 +478,22 @@
       });
     }
 
-    const yieldKg = Math.round(totalLiters * 1.08);
-    const waterKg = Math.round(yieldKg * 0.01);
-    const evapKg = Math.round(yieldKg * 0.99);
+    // Factoren ophalen uit instellingen
+    const fYield = parseNum(document.getElementById('facYield').value) || 1.08;
+    const fWater = parseNum(document.getElementById('facWater').value) || 0.01;
+    const fEvap = parseNum(document.getElementById('facEvap').value) || 0.99;
+    const fPkgMult = parseNum(document.getElementById('facPkgMult').value) || 4;
+    const fBulkMult = parseNum(document.getElementById('facBulkMult').value) || 1.1;
+
+    const yieldKg = Math.round(totalLiters * fYield);
+    const waterKg = Math.round(yieldKg * fWater);
+    const evapKg = Math.round(yieldKg * fEvap);
     
-    // Nieuwe velden uitlezen
     const packagesVal = parseNum(document.getElementById('lattizPackagesInput').value);
     const reprocessVal = parseNum(document.getElementById('lattizReprocessInput').value);
 
-    // Berekening: (Hoeveelheid verpakkingen x 4) x 1.1 + hoeveelheid herverwerking
-    const bulkOrderVal = Math.round((packagesVal * 4) * 1.1 + reprocessVal);
+    // Berekening: (Hoeveelheid verpakkingen x fPkgMult) x fBulkMult + hoeveelheid herverwerking
+    const bulkOrderVal = Math.round((packagesVal * fPkgMult) * fBulkMult + reprocessVal);
 
     document.getElementById('lattizRuns').innerText = runCount;
     document.getElementById('lattizTotalLiters').innerText = Math.round(totalLiters).toLocaleString('nl-NL') + ' L';
@@ -593,6 +659,7 @@
   }
 
   window.addEventListener('DOMContentLoaded', () => {
+    loadSettings();
     onCauseChange();
     const inputs = Array.from(document.querySelectorAll('#tool1 input:not([type="hidden"]), #tool1 select'));
     inputs.forEach((input, index) => {
