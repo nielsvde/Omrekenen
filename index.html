@@ -117,7 +117,7 @@
       <span class="info-icon" onclick="toggleTooltip('batchTooltip')">?</span>
     </div>
     <input type="text" inputmode="decimal" id="batchSize" placeholder="bijv. 3517" oninput="formatInput(this); checkIfManuallyEdited(); calculate()">
-    <div id="batchTooltip" class="info-tooltip"><strong>Let op:</strong> De werkelijke batchgrootte kan afwijken als een grondstof onvolledig is gedoseerd!</div>
+    <div id="batchTooltip" class="info-tooltip"><strong>Let op:</strong> De werkelijke batchgrootte kan afwijken als een grondstof onvolledig is gedoseerd in de mixtank!</div>
   </div>
 
   <div class="form-group">
@@ -356,7 +356,6 @@
         if (effectiveCreamFat > targetFat) {
           addAmount = ((targetFat - currentFat) / (effectiveCreamFat - targetFat)) * activeBatchSize;
           const currentFatKg = (activeBatchSize * currentFat) / 100;
-          const targetFatKg = (activeBatchSize * targetFat) / 100;
           
           stepsHtml = `
             <div class="calc-step">
@@ -432,11 +431,11 @@
 
       detailsEl.innerHTML = `
         <div class="calc-step">
-          <strong>Analyse op basis van gekozen oorzaak (${missingComponent}):</strong><br>
+          <strong>Analyse op basis van gekozen oorzaak:</strong><br>
           • <strong>Gepland water / ${ingredientName}:</strong> ${Math.round(plannedWater)} kg / ${Math.round(baseForActualCalc - plannedWater)} kg<br>
           • <strong>Werkelijk water / ${ingredientName}:</strong> ${Math.round(actualWater)} kg / ${Math.round(actualIngredient)} kg<br>
           • <strong>Verschil in totale massa:</strong> <span style="color:${Math.abs(diffTotal) < 0.5 ? '#27ae60' : '#c0392b'}; font-weight:bold;">${diffTotal > 0 ? '+' : ''}${Math.round(diffTotal)} kg</span><br>
-          <em>Uitleg:</em> Berekend via de droge stof / vetbalans om te achterhalen hoeveel ${ingredientName} of water er door een weeg- of doseerfout feitelijk te weinig/te veel in de menger is gekomen.
+          <em>Uitleg:</em> Berekend via de droge stof / vetbalans om te achterhalen hoeveel ${ingredientName} of water er door een weeg- of doseerfout feitelijk te weinig/te veel in de mixtank is gekomen.
         </div>`;
     } else {
       if (!isApplied) computedActualTotal = 0;
