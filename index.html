@@ -26,7 +26,7 @@
     }
     @media (min-width: 480px) { body { padding: 20px; } .card { padding: 24px; } }
     
-    .header-container { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 24px; text-align: left; }
+    .header-container { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; text-align: left; }
     .header-branding { display: flex; align-items: center; gap: 12px; }
     .header-logo { height: 48px; width: auto; object-fit: contain; flex-shrink: 0; }
     .header-text-img { height: 38px; width: auto; object-fit: contain; }
@@ -35,6 +35,16 @@
       padding: 6px 10px; font-size: 0.8rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px;
     }
     .btn-reset-header:hover { background: #e9ecef; color: #212529; }
+
+    /* Hoofdnavigatie voor de tools */
+    .main-tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+    .main-tab-btn {
+      flex: 1; padding: 10px 6px; border: 1px solid var(--border-blue); background: #e9ecef;
+      font-size: 0.85rem; font-weight: 600; color: #495057; cursor: pointer; border-radius: 8px; transition: all 0.2s;
+    }
+    .main-tab-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+    .main-tool-content { display: none; text-align: left; }
+    .main-tool-content.active { display: block; }
 
     .form-group { margin-bottom: 16px; text-align: left; }
     .label-container { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
@@ -47,9 +57,10 @@
       display: none; margin-top: 6px; padding: 10px; background-color: #fff3cd; color: #856404;
       border: 1px solid #ffeeba; border-radius: 8px; font-size: 0.82rem; line-height: 1.4;
     }
-    input, select {
-      width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 1rem; box-sizing: border-box; background: #fff;
+    input, select, textarea {
+      width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 1rem; box-sizing: border-box; background: #fff; font-family: inherit;
     }
+    textarea { resize: vertical; min-height: 100px; }
 
     .tabs-wrapper { margin-top: 24px; }
     .tab-buttons { display: flex; gap: 4px; margin-bottom: -1px; position: relative; z-index: 1; }
@@ -111,90 +122,137 @@
     <button type="button" class="btn-reset-header" onclick="resetCalculator()" title="Wis alle invoer">↺ Reset</button>
   </div>
   
-  <div class="form-group">
-    <div class="label-container">
-      <label for="batchSize">Geplande batchgrootte (kg):</label>
-      <span class="info-icon" onclick="toggleTooltip('batchTooltip')">?</span>
-    </div>
-    <input type="text" inputmode="decimal" id="batchSize" placeholder="bijv. 3517" oninput="formatInput(this); checkIfManuallyEdited(); calculate()">
-    <div id="batchTooltip" class="info-tooltip"><strong>Let op:</strong> De werkelijke batchgrootte kan afwijken als een grondstof onvolledig is gedoseerd in de mixtank!</div>
+  <!-- Hoofdnavigatie voor de tools -->
+  <div class="main-tabs">
+    <button class="main-tab-btn active" onclick="switchMainTool('tool1', this)">Vetcorrectie</button>
+    <button class="main-tab-btn" onclick="switchMainTool('tool2', this)">Evap / Lattiz</button>
   </div>
 
-  <div class="form-group">
-    <label for="currentFat">Gemeten vetgehalte batch (%):</label>
-    <input type="text" inputmode="decimal" id="currentFat" placeholder="bijv. 27.42" oninput="formatInput(this); calculate()" onblur="formatDecimals(this, 2)">
-  </div>
-
-  <div class="form-group">
-    <label for="targetFat">Gewenst vetgehalte (%):</label>
-    <input type="text" inputmode="decimal" id="targetFat" placeholder="bijv. 30.00" oninput="formatInput(this); calculate()" onblur="formatDecimals(this, 2)">
-  </div>
-
-  <div class="form-group">
-    <label for="missingComponent">Oorzaak afwijking:</label>
-    <select id="missingComponent" onchange="onCauseChange()">
-      <option value="cream_less">Te weinig room gedoseerd</option>
-      <option value="cream_more">Te veel room gedoseerd</option>
-      <option value="fat_less">Te weinig vloeibaar vet gedoseerd</option>
-      <option value="fat_more">Te veel vloeibaar vet gedoseerd</option>
-      <option value="water_less">Te weinig water gedoseerd</option>
-      <option value="water_more">Te veel water gedoseerd</option>
-    </select>
-  </div>
-
-  <div class="form-group" id="creamFatGroup">
-    <label id="creamFatLabel" for="creamFat">Vetgehalte toe te voegen room (%):</label>
-    <input type="text" inputmode="decimal" id="creamFat" placeholder="bijv. 43.1" oninput="formatInput(this); calculate()" onblur="formatDecimals(this, 2)">
-  </div>
-
-  <div class="tabs-wrapper">
-    <div class="tab-buttons">
-      <button class="tab-btn active" onclick="switchTab('tab-resultat', this)">Resultaat</button>
-      <button class="tab-btn" onclick="switchTab('tab-berekening', this)">Berekening</button>
+  <!-- TOOL 1: VETCORRECTIE -->
+  <div id="tool1" class="main-tool-content active">
+    <div class="form-group">
+      <div class="label-container">
+        <label for="batchSize">Geplande batchgrootte (kg):</label>
+        <span class="info-icon" onclick="toggleTooltip('batchTooltip')">?</span>
+      </div>
+      <input type="text" inputmode="decimal" id="batchSize" placeholder="bijv. 3517" oninput="formatInput(this); checkIfManuallyEdited(); calculate()">
+      <div id="batchTooltip" class="info-tooltip"><strong>Let op:</strong> De werkelijke batchgrootte kan afwijken als een grondstof onvolledig is gedoseerd in de mixtank!</div>
     </div>
 
-    <div class="tab-content-container">
-      <!-- Tab 1 -->
-      <div id="tab-resultat" class="tab-content active">
-        <div id="errorSection"></div>
-        <div style="margin-bottom: 12px;">
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <span id="actualBatchLabel" style="font-size: 0.85rem; color: #555;">Vermoedelijke werkelijke batchgrootte:</span>
-            <span id="actualBatchValue" class="result-value" style="font-size: 1.1rem; color: var(--primary);">0 kg</span>
-          </div>
-          <button type="button" class="btn-apply-batch" onclick="toggleBatchSizeState()">↺ Overnemen als geplande batch</button>
-        </div>
+    <div class="form-group">
+      <label for="currentFat">Gemeten vetgehalte batch (%):</label>
+      <input type="text" inputmode="decimal" id="currentFat" placeholder="bijv. 27.42" oninput="formatInput(this); calculate()" onblur="formatDecimals(this, 2)">
+    </div>
 
-        <hr style="border:0; border-top: 1px solid var(--border-blue); margin: 14px 0;">
+    <div class="form-group">
+      <label for="targetFat">Gewenst vetgehalte (%):</label>
+      <input type="text" inputmode="decimal" id="targetFat" placeholder="bijv. 30.00" oninput="formatInput(this); calculate()" onblur="formatDecimals(this, 2)">
+    </div>
 
-        <div class="result-row" id="rowAddIngredient">
-          <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-            <span id="addLabel">Hoeveelheid room toevoegen:</span>
-            <span class="info-icon" onclick="toggleTooltip('addTooltip')">?</span>
-          </div>
-          <span id="addValue" class="result-value">0 kg</span>
-        </div>
-        <div id="addTooltip" class="info-tooltip" style="margin-bottom: 10px;"><strong>Let op:</strong> 100% Room toevoegen zonder water inspoel!</div>
+    <div class="form-group">
+      <label for="missingComponent">Oorzaak afwijking:</label>
+      <select id="missingComponent" onchange="onCauseChange()">
+        <option value="cream_less">Te weinig room gedoseerd</option>
+        <option value="cream_more">Te veel room gedoseerd</option>
+        <option value="fat_less">Te weinig vloeibaar vet gedoseerd</option>
+        <option value="fat_more">Te veel vloeibaar vet gedoseerd</option>
+        <option value="water_less">Te weinig water gedoseerd</option>
+        <option value="water_more">Te veel water gedoseerd</option>
+      </select>
+    </div>
 
-        <div class="result-row" id="rowAddWater">
-          <span>Hoeveelheid water toevoegen:</span>
-          <span id="waterToAdd" class="result-value">0 kg</span>
-        </div>
-        <div class="result-row" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border-blue);">
-          <span>Totale grootte batch na correctie:</span>
-          <span id="totalBatch" class="result-value">0 kg</span>
-        </div>
+    <div class="form-group" id="creamFatGroup">
+      <label id="creamFatLabel" for="creamFat">Vetgehalte toe te voegen room (%):</label>
+      <input type="text" inputmode="decimal" id="creamFat" placeholder="bijv. 43.1" oninput="formatInput(this); calculate()" onblur="formatDecimals(this, 2)">
+    </div>
+
+    <div class="tabs-wrapper">
+      <div class="tab-buttons">
+        <button class="tab-btn active" onclick="switchTab('tab-resultat', this)">Resultaat</button>
+        <button class="tab-btn" onclick="switchTab('tab-berekening', this)">Berekening</button>
       </div>
 
-      <!-- Tab 2 -->
-      <div id="tab-berekening" class="tab-content">
-        <div class="section-title">1. Analyse werkelijke batch inhoud</div>
-        <div id="actualBatchDetails"><p style="margin:0; font-style:italic; color:#666;">Vul de gegevens in om de werkelijke batchberekening te zien.</p></div>
+      <div class="tab-content-container">
+        <!-- Tab 1 -->
+        <div id="tab-resultat" class="tab-content active">
+          <div id="errorSection"></div>
+          <div style="margin-bottom: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span id="actualBatchLabel" style="font-size: 0.85rem; color: #555;">Vermoedelijke werkelijke batchgrootte:</span>
+              <span id="actualBatchValue" class="result-value" style="font-size: 1.1rem; color: var(--primary);">0 kg</span>
+            </div>
+            <button type="button" class="btn-apply-batch" onclick="toggleBatchSizeState()">↺ Overnemen als geplande batch</button>
+          </div>
 
-        <hr style="border:0; border-top: 2px dashed #b6d4fe; margin: 18px 0;">
+          <hr style="border:0; border-top: 1px solid var(--border-blue); margin: 14px 0;">
 
-        <div class="section-title">2. Correctie berekening stappen</div>
-        <div id="calcSteps"><p style="margin:0; font-style:italic; color:#666;">Vul de gegevens in om de berekening in stappen te zien.</p></div>
+          <div class="result-row" id="rowAddIngredient">
+            <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+              <span id="addLabel">Hoeveelheid room toevoegen:</span>
+              <span class="info-icon" onclick="toggleTooltip('addTooltip')">?</span>
+            </div>
+            <span id="addValue" class="result-value">0 kg</span>
+          </div>
+          <div id="addTooltip" class="info-tooltip" style="margin-bottom: 10px;"><strong>Let op:</strong> 100% Room toevoegen zonder water inspoel!</div>
+
+          <div class="result-row" id="rowAddWater">
+            <span>Hoeveelheid water toevoegen:</span>
+            <span id="waterToAdd" class="result-value">0 kg</span>
+          </div>
+          <div class="result-row" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border-blue);">
+            <span>Totale grootte batch na correctie:</span>
+            <span id="totalBatch" class="result-value">0 kg</span>
+          </div>
+        </div>
+
+        <!-- Tab 2 -->
+        <div id="tab-berekening" class="tab-content">
+          <div class="section-title">1. Analyse werkelijke batch inhoud</div>
+          <div id="actualBatchDetails"><p style="margin:0; font-style:italic; color:#666;">Vul de gegevens in om de werkelijke batchberekening te zien.</p></div>
+
+          <hr style="border:0; border-top: 2px dashed #b6d4fe; margin: 18px 0;">
+
+          <div class="section-title">2. Correctie berekening stappen</div>
+          <div id="calcSteps"><p style="margin:0; font-style:italic; color:#666;">Vul de gegevens in om de berekening in stappen te zien.</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOOL 2: EVAP / LATTIZ -->
+  <div id="tool2" class="main-tool-content">
+    <div class="form-group">
+      <div class="label-container">
+        <label for="lattizInput">Plak Excel gegevens (productie runs):</label>
+        <span class="info-icon" onclick="toggleTooltip('lattizTooltip')">?</span>
+      </div>
+      <textarea id="lattizInput" placeholder="Plak hier je getallen uit Excel (kolom of rij)..." oninput="calculateLattiz()"></textarea>
+      <div id="lattizTooltip" class="info-tooltip"><strong>Instructie:</strong> Kopieer je getallen uit Excel en plak ze direct hierin. Alle getallen worden automatisch opgeteld.</div>
+    </div>
+
+    <div class="tab-content-container" style="border-radius: 12px; margin-top: 10px;">
+      <div class="section-title">Overzicht Lattiz Productie</div>
+      
+      <div class="result-row" style="margin-bottom: 12px;">
+        <span>Totaal geproduceerd product:</span>
+        <span id="lattizTotalLiters" class="result-value" style="font-size: 1.05rem; color: var(--primary);">0 L</span>
+      </div>
+      
+      <div class="result-row" style="margin-bottom: 12px; padding-top: 8px; border-top: 1px solid var(--border-blue);">
+        <span>Totaal opbrengst product ($\times 1.08$):</span>
+        <span id="lattizYieldKg" class="result-value" style="font-size: 1.1rem; color: var(--primary);">0.00 kg</span>
+      </div>
+
+      <hr style="border:0; border-top: 1px solid var(--border-blue); margin: 12px 0;">
+
+      <div class="result-row" style="margin-bottom: 10px;">
+        <span>Hoeveelheid water te boeken ($\times 0.01$):</span>
+        <span id="lattizWater" class="result-value">0.00 kg</span>
+      </div>
+
+      <div class="result-row">
+        <span>Hoeveelheid evap te boeken ($\times 0.99$):</span>
+        <span id="lattizEvap" class="result-value">0.00 kg</span>
       </div>
     </div>
   </div>
@@ -248,6 +306,13 @@
     document.getElementById(tabId).classList.add('active');
   }
 
+  function switchMainTool(toolId, btn) {
+    document.querySelectorAll('.main-tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.main-tool-content').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(toolId).classList.add('active');
+  }
+
   function onCauseChange() {
     const cause = document.getElementById('missingComponent').value;
     const creamFatGroup = document.getElementById('creamFatGroup');
@@ -290,12 +355,42 @@
   }
 
   function resetCalculator() {
-    ['batchSize', 'currentFat', 'targetFat', 'creamFat'].forEach(id => document.getElementById(id).value = '');
+    ['batchSize', 'currentFat', 'targetFat', 'creamFat', 'lattizInput'].forEach(id => {
+      const el = document.getElementById(id);
+      if(el) el.value = '';
+    });
     document.getElementById('missingComponent').value = 'cream_less';
-    ['batchTooltip', 'addTooltip'].forEach(id => document.getElementById(id).style.display = 'none');
+    ['batchTooltip', 'addTooltip', 'lattizTooltip'].forEach(id => {
+      const el = document.getElementById(id);
+      if(el) el.style.display = 'none';
+    });
     originalBatchSize = null;
     isApplied = false;
     onCauseChange();
+    calculateLattiz();
+  }
+
+  // Berekening logica voor Lattiz tool
+  function calculateLattiz() {
+    const rawText = document.getElementById('lattizInput').value;
+    // Zoek alle getallen in de geplakte tekst (ondersteunt punten en komma's als decimaal of duizendtalscheiding)
+    const matches = rawText.match(/[0-9]+([.,][0-9]+)?/g);
+    
+    let totalLiters = 0;
+    if (matches) {
+      matches.forEach(m => {
+        totalLiters += parseNum(m);
+      });
+    }
+
+    const yieldKg = totalLiters * 1.08;
+    const waterKg = yieldKg * 0.01;
+    const evapKg = yieldKg * 0.99;
+
+    document.getElementById('lattizTotalLiters').innerText = totalLiters.toLocaleString('nl-NL', {maximumFractionDigits: 2}) + ' L';
+    document.getElementById('lattizYieldKg').innerText = yieldKg.toLocaleString('nl-NL', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' kg';
+    document.getElementById('lattizWater').innerText = waterKg.toLocaleString('nl-NL', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' kg';
+    document.getElementById('lattizEvap').innerText = evapKg.toLocaleString('nl-NL', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' kg';
   }
 
   function calculate() {
@@ -455,7 +550,7 @@
 
   window.addEventListener('DOMContentLoaded', () => {
     onCauseChange();
-    const inputs = Array.from(document.querySelectorAll('input:not([type="hidden"]), select'));
+    const inputs = Array.from(document.querySelectorAll('#tool1 input:not([type="hidden"]), #tool1 select'));
     inputs.forEach((input, index) => {
       input.addEventListener('keydown', e => {
         if (e.key === 'Enter' || e.key === 'ArrowDown') {
