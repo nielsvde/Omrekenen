@@ -222,7 +222,6 @@
     }
   }
 
-  // Zorgt ervoor dat wanneer je het veld verlaat, er automatisch decimalen (standaard 2) worden toegevoegd
   function formatDecimals(input, decimals) {
     const val = parseNum(input.value);
     if (val > 0) {
@@ -301,6 +300,16 @@
 
   function calculate() {
     const inputBatchSize = parseNum(document.getElementById('batchSize').value);
+    
+    // Zorg dat getallen met 1 decimaal direct visueel worden bijgewerkt naar 2 decimalen tijdens het berekenen
+    ['currentFat', 'targetFat', 'creamFat'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el.value !== '' && !el.matches(':focus')) {
+        const val = parseNum(el.value);
+        if (val > 0) el.value = val.toFixed(2);
+      }
+    });
+
     const currentFat = parseNum(document.getElementById('currentFat').value);
     const targetFat = parseNum(document.getElementById('targetFat').value);
     const missingComponent = document.getElementById('missingComponent').value;
