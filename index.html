@@ -62,6 +62,14 @@
     }
     textarea { resize: vertical; min-height: 100px; }
 
+    /* Specifieke kleine invoervelden voor Lattiz */
+    .lattiz-input-small {
+      width: 90px !important;
+      padding: 6px 8px !important;
+      font-size: 0.9rem !important;
+      text-align: right;
+    }
+
     .tabs-wrapper { margin-top: 24px; }
     .tab-buttons { display: flex; gap: 4px; margin-bottom: -1px; position: relative; z-index: 1; }
     .tab-btn {
@@ -75,7 +83,7 @@
     .tab-content { display: none; }
     .tab-content.active { display: block; }
 
-    .result-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 10px; font-size: 0.92rem; }
+    .result-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 10px; font-size: 0.92rem; }
     .result-row:last-child { margin-bottom: 0; }
     .result-value { font-weight: bold; white-space: nowrap; }
     .section-title { font-size: 0.88rem; font-weight: 700; color: var(--primary); margin: 0 0 10px; text-transform: uppercase; letter-spacing: 0.5px; }
@@ -233,26 +241,48 @@
     <div class="tab-content-container" style="border-radius: 12px; margin-top: 10px;">
       <div class="section-title">Overzicht Lattiz Productie</div>
       
+      <div class="result-row" style="margin-bottom: 10px;">
+        <span>Aantal productie runs:</span>
+        <span id="lattizRuns" class="result-value" style="color: var(--primary);">0</span>
+      </div>
+
       <div class="result-row" style="margin-bottom: 12px;">
         <span>Totaal geproduceerd product:</span>
         <span id="lattizTotalLiters" class="result-value" style="font-size: 1.05rem; color: var(--primary);">0 L</span>
       </div>
       
       <div class="result-row" style="margin-bottom: 12px; padding-top: 8px; border-top: 1px solid var(--border-blue);">
-        <span>Totaal opbrengst product ($\times 1.08$):</span>
-        <span id="lattizYieldKg" class="result-value" style="font-size: 1.1rem; color: var(--primary);">0.00 kg</span>
+        <span>Totaal opbrengst product:</span>
+        <span id="lattizYieldKg" class="result-value" style="font-size: 1.1rem; color: var(--primary);">0 kg</span>
       </div>
 
       <hr style="border:0; border-top: 1px solid var(--border-blue); margin: 12px 0;">
 
       <div class="result-row" style="margin-bottom: 10px;">
-        <span>Hoeveelheid water te boeken ($\times 0.01$):</span>
-        <span id="lattizWater" class="result-value">0.00 kg</span>
+        <span>Hoeveelheid water te boeken:</span>
+        <span id="lattizWater" class="result-value">0 kg</span>
       </div>
 
-      <div class="result-row">
-        <span>Hoeveelheid evap te boeken ($\times 0.99$):</span>
-        <span id="lattizEvap" class="result-value">0.00 kg</span>
+      <div class="result-row" style="margin-bottom: 12px;">
+        <span>Hoeveelheid evap te boeken:</span>
+        <span id="lattizEvap" class="result-value">0 kg</span>
+      </div>
+
+      <hr style="border:0; border-top: 1px solid var(--border-blue); margin: 12px 0;">
+
+      <div class="result-row" style="margin-bottom: 10px;">
+        <span>Totaal hoeveelheid verpakkingen afgevuld:</span>
+        <input type="text" inputmode="numeric" maxlength="6" id="lattizPackagesInput" class="lattiz-input-small" placeholder="0" oninput="calculateLattiz()">
+      </div>
+
+      <div class="result-row" style="margin-bottom: 12px;">
+        <span>Totaal hoeveelheid herverwerking:</span>
+        <input type="text" inputmode="decimal" id="lattizReprocessInput" class="lattiz-input-small" placeholder="0" oninput="formatInput(this); calculateLattiz()">
+      </div>
+
+      <div class="result-row" style="padding-top: 8px; border-top: 1px solid var(--border-blue);">
+        <span>Hoeveelheid bulk boeken op vulorder:</span>
+        <span id="lattizBulkOrder" class="result-value" style="color: var(--primary);">0 kg</span>
       </div>
     </div>
   </div>
@@ -355,7 +385,7 @@
   }
 
   function resetCalculator() {
-    ['batchSize', 'currentFat', 'targetFat', 'creamFat', 'lattizInput'].forEach(id => {
+    ['batchSize', 'currentFat', 'targetFat', 'creamFat', 'lattizInput', 'lattizPackagesInput', 'lattizReprocessInput'].forEach(id => {
       const el = document.getElementById(id);
       if(el) el.value = '';
     });
@@ -375,20 +405,36 @@
     const matches = rawText.match(/[0-9]+([.,][0-9]+)?/g);
     
     let totalLiters = 0;
+    let runCount = 0;
+    
+    if (rawText.trim() !== '') {
+      const lines = rawText.split(/\r?\n/).filter(line => line.trim() !== '');
+      runCount = lines.length;
+    }
+
     if (matches) {
       matches.forEach(m => {
         totalLiters += parseNum(m);
       });
     }
 
-    const yieldKg = totalLiters * 1.08;
-    const waterKg = yieldKg * 0.01;
-    const evapKg = yieldKg * 0.99;
+    const yieldKg = Math.round(totalLiters * 1.08);
+    const waterKg = Math.round(yieldKg * 0.01);
+    const evapKg = Math.round(yieldKg * 0.99);
+    
+    // Nieuwe velden uitlezen
+    const packagesVal = parseNum(document.getElementById('lattizPackagesInput').value);
+    const reprocessVal = parseNum(document.getElementById('lattizReprocessInput').value);
 
-    document.getElementById('lattizTotalLiters').innerText = totalLiters.toLocaleString('nl-NL', {maximumFractionDigits: 2}) + ' L';
-    document.getElementById('lattizYieldKg').innerText = yieldKg.toLocaleString('nl-NL', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' kg';
-    document.getElementById('lattizWater').innerText = waterKg.toLocaleString('nl-NL', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' kg';
-    document.getElementById('lattizEvap').innerText = evapKg.toLocaleString('nl-NL', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' kg';
+    // Berekening: (Hoeveelheid verpakkingen x 4) x 1.1 + hoeveelheid herverwerking
+    const bulkOrderVal = Math.round((packagesVal * 4) * 1.1 + reprocessVal);
+
+    document.getElementById('lattizRuns').innerText = runCount;
+    document.getElementById('lattizTotalLiters').innerText = Math.round(totalLiters).toLocaleString('nl-NL') + ' L';
+    document.getElementById('lattizYieldKg').innerText = yieldKg.toLocaleString('nl-NL') + ' kg';
+    document.getElementById('lattizWater').innerText = waterKg.toLocaleString('nl-NL') + ' kg';
+    document.getElementById('lattizEvap').innerText = evapKg.toLocaleString('nl-NL') + ' kg';
+    document.getElementById('lattizBulkOrder').innerText = bulkOrderVal.toLocaleString('nl-NL') + ' kg';
   }
 
   function calculate() {
