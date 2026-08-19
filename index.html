@@ -124,11 +124,11 @@
   
   <!-- Hoofdnavigatie voor de tools -->
   <div class="main-tabs">
-    <button class="main-tab-btn active" onclick="switchMainTool('tool1', this)">Vetcorrectie</button>
+    <button class="main-tab-btn active" onclick="switchMainTool('tool1', this)">Product correctie</button>
     <button class="main-tab-btn" onclick="switchMainTool('tool2', this)">Evap / Lattiz</button>
   </div>
 
-  <!-- TOOL 1: VETCORRECTIE -->
+  <!-- TOOL 1: PRODUCT CORRECTIE -->
   <div id="tool1" class="main-tool-content active">
     <div class="form-group">
       <div class="label-container">
@@ -370,10 +370,8 @@
     calculateLattiz();
   }
 
-  // Berekening logica voor Lattiz tool
   function calculateLattiz() {
     const rawText = document.getElementById('lattizInput').value;
-    // Zoek alle getallen in de geplakte tekst (ondersteunt punten en komma's als decimaal of duizendtalscheiding)
     const matches = rawText.match(/[0-9]+([.,][0-9]+)?/g);
     
     let totalLiters = 0;
