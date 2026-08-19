@@ -33,8 +33,9 @@
     .header-buttons { display: flex; gap: 6px; }
     .btn-header-action {
       background: #f1f3f5; border: 1px solid #ced4da; color: #495057; border-radius: 8px;
-      padding: 6px 10px; font-size: 0.8rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px;
+      padding: 6px 10px; font-size: 0.8rem; font-weight: 600; cursor: pointer; display: none; align-items: center; gap: 4px;
     }
+    .btn-header-action.visible { display: flex; }
     .btn-header-action:hover { background: #e9ecef; color: #212529; }
 
     /* Instellingen paneel */
@@ -138,8 +139,8 @@
       <img src="logotekst.png" alt="Product correctie calculator" class="header-text-img">
     </div>
     <div class="header-buttons">
-      <button type="button" class="btn-header-action" onclick="toggleSettings()" title="Instellingen factoren">⚙️</button>
-      <button type="button" class="btn-header-action" onclick="resetCalculator()" title="Wis alle invoer">↺ Reset</button>
+      <button type="button" id="settingsBtn" class="btn-header-action" onclick="toggleSettings()" title="Instellingen factoren">⚙️</button>
+      <button type="button" class="btn-header-action visible" onclick="resetCalculator()" title="Wis alle invoer">↺ Reset</button>
     </div>
   </div>
 
@@ -341,8 +342,13 @@
   let computedActualTotal = 0, originalBatchSize = null, isApplied = false;
 
   function toggleSettings() {
-    const panel = document.getElementById('settingsPanel');
-    panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+    const password = prompt("Voer het wachtwoord in om de instellingen te openen:");
+    if (password === "Pcc") {
+      const panel = document.getElementById('settingsPanel');
+      panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+    } else if (password !== null) {
+      alert("Onjuist wachtwoord!");
+    }
   }
 
   function formatInput(input) {
@@ -401,6 +407,16 @@
     document.querySelectorAll('.main-tool-content').forEach(c => c.classList.remove('active'));
     btn.classList.add('active');
     document.getElementById(toolId).classList.add('active');
+
+    // Toon het instellingenknopje (⚙️) alleen als we op tool2 (Evap / Lattiz) zijn
+    const settingsBtn = document.getElementById('settingsBtn');
+    const settingsPanel = document.getElementById('settingsPanel');
+    if (toolId === 'tool2') {
+      settingsBtn.classList.add('visible');
+    } else {
+      settingsBtn.classList.remove('visible');
+      settingsPanel.style.display = 'none'; // Sluit paneel als je wegklikt
+    }
   }
 
   function onCauseChange() {
@@ -492,7 +508,6 @@
     const packagesVal = parseNum(document.getElementById('lattizPackagesInput').value);
     const reprocessVal = parseNum(document.getElementById('lattizReprocessInput').value);
 
-    // Berekening: (Hoeveelheid verpakkingen x fPkgMult) x fBulkMult + hoeveelheid herverwerking
     const bulkOrderVal = Math.round((packagesVal * fPkgMult) * fBulkMult + reprocessVal);
 
     document.getElementById('lattizRuns').innerText = runCount;
