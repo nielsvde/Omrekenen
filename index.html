@@ -68,7 +68,7 @@
     .result-row:last-child { margin-bottom: 0; }
     .result-value { font-weight: bold; white-space: nowrap; }
     .section-title { font-size: 0.88rem; font-weight: 700; color: var(--primary); margin: 0 0 10px; text-transform: uppercase; letter-spacing: 0.5px; }
-    .calc-step { margin-bottom: 12px; font-size: 0.88rem; line-height: 1.4; }
+    .calc-step { margin-bottom: 12px; font-size: 0.85rem; line-height: 1.4; background: #ffffff; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0; }
     .calc-step:last-child { margin-bottom: 0; }
     .error-box { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; padding: 12px; border-radius: 8px; font-size: 0.85rem; line-height: 1.4; margin-bottom: 14px; }
     
@@ -301,7 +301,6 @@
   function calculate() {
     const inputBatchSize = parseNum(document.getElementById('batchSize').value);
     
-    // Zorg dat getallen met 1 decimaal direct visueel worden bijgewerkt naar 2 decimalen tijdens het berekenen
     ['currentFat', 'targetFat', 'creamFat'].forEach(id => {
       const el = document.getElementById(id);
       if (el.value !== '' && !el.matches(':focus')) {
@@ -357,26 +356,52 @@
         if (effectiveCreamFat > targetFat) {
           addAmount = ((targetFat - currentFat) / (effectiveCreamFat - targetFat)) * activeBatchSize;
           const currentFatKg = (activeBatchSize * currentFat) / 100;
+          const targetFatKg = (activeBatchSize * targetFat) / 100;
+          
           stepsHtml = `
-            <div class="calc-step"><strong>Stap 1: Huidige vet</strong><br>${Math.round(activeBatchSize)} kg × ${currentFat.toFixed(2)}% = ${currentFatKg.toFixed(2)} kg</div>
-            <div class="calc-step"><strong>Stap 2: Benodigde ${ingredientName}</strong><br><strong>${Math.round(addAmount)} kg</strong></div>
-            <div class="calc-step"><strong>Stap 3 & 4: Totaal</strong><br>Batch: <strong>${Math.round(activeBatchSize + addAmount)} kg</strong></div>`;
+            <div class="calc-step">
+              <strong>Stap 1: Berekening huidige vethoeveelheid</strong><br>
+              We vermenigvuldigen de actieve batchgrootte (${Math.round(activeBatchSize)} kg) met het gemeten vetgehalte (${currentFat.toFixed(2)}%).<br>
+              <em>Formule:</em> ${Math.round(activeBatchSize)} × (${currentFat.toFixed(2)} / 100) = <strong>${currentFatKg.toFixed(2)} kg vet</strong>.
+            </div>
+            <div class="calc-step">
+              <strong>Stap 2: Berekening benodigde ${ingredientName}</strong><br>
+              Om het vetgehalte op te trekken naar ${targetFat.toFixed(2)}% met ${ingredientName} van ${effectiveCreamFat.toFixed(2)}% vet, gebruiken we de mengformule (massa-balans).<br>
+              <em>Formule:</em> ((${targetFat.toFixed(2)} - ${currentFat.toFixed(2)}) / (${effectiveCreamFat.toFixed(2)} - ${targetFat.toFixed(2)})) × ${Math.round(activeBatchSize)}<br>
+              Uitkomst: <strong>${addAmount.toFixed(2)} kg</strong> (wordt afgerond op hele kilo's: <strong>${Math.round(addAmount)} kg</strong>).
+            </div>
+            <div class="calc-step">
+              <strong>Stap 3: Totaaloverzicht na correctie</strong><br>
+              Nieuwe totale batchgrootte = Actieve batch (${Math.round(activeBatchSize)} kg) + toe te voegen ${ingredientName} (${Math.round(addAmount)} kg) = <strong>${Math.round(activeBatchSize + addAmount)} kg</strong>.
+            </div>`;
         }
       } else if (currentFat > targetFat && targetFat > 0) {
         rowAddIngredient.style.display = 'none';
         rowAddWater.style.display = 'flex';
         waterToAdd = ((currentFat / targetFat) - 1) * activeBatchSize;
+        
         stepsHtml = `
-          <div class="calc-step"><strong>Stap 1: Huidige vet</strong><br>${(activeBatchSize * currentFat / 100).toFixed(2)} kg</div>
-          <div class="calc-step"><strong>Stap 2: Water toevoegen</strong><br><strong>${Math.round(waterToAdd)} kg water</strong></div>
-          <div class="calc-step"><strong>Stap 3: Totaal</strong><br>Batch: <strong>${Math.round(activeBatchSize + waterToAdd)} kg</strong></div>`;
+          <div class="calc-step">
+            <strong>Stap 1: Analyse huidige vethoeveelheid</strong><br>
+            De huidige hoeveelheid vet in de batch bedraagt: ${Math.round(activeBatchSize)} kg × ${currentFat.toFixed(2)}% = <strong>${(activeBatchSize * currentFat / 100).toFixed(2)} kg vet</strong>.
+          </div>
+          <div class="calc-step">
+            <strong>Stap 2: Berekening benodigde water</strong><br>
+            Omdat het vetgehalte te hoog is (${currentFat.toFixed(2)}% t.o.v. gewenst ${targetFat.toFixed(2)}%), moeten we de batch verdunnen met water.<br>
+            <em>Formule:</em> ((${currentFat.toFixed(2)} / ${targetFat.toFixed(2)}) - 1) × ${Math.round(activeBatchSize)}<br>
+            Uitkomst: <strong>${waterToAdd.toFixed(2)} kg</strong> (afgerond: <strong>${Math.round(waterToAdd)} kg water</strong>).
+          </div>
+          <div class="calc-step">
+            <strong>Stap 3: Totaaloverzicht na verdunning</strong><br>
+            Nieuwe totale batchgrootte = ${Math.round(activeBatchSize)} kg + ${Math.round(waterToAdd)} kg water = <strong>${Math.round(activeBatchSize + waterToAdd)} kg</strong>.
+          </div>`;
       }
     }
 
     document.getElementById('addValue').innerText = Math.round(addAmount) + ' kg';
     document.getElementById('waterToAdd').innerText = Math.round(waterToAdd) + ' kg';
     document.getElementById('totalBatch').innerText = Math.round(activeBatchSize + addAmount + waterToAdd) + ' kg';
-    document.getElementById('calcSteps').innerHTML = stepsHtml || '<p style="margin:0; color:#666;">Vul gegevens in.</p>';
+    document.getElementById('calcSteps').innerHTML = stepsHtml || '<p style="margin:0; color:#666;">Vul gegevens in om de stappen te tonen.</p>';
 
     const actualBatchLabelEl = document.getElementById('actualBatchLabel');
     const actualBatchValueEl = document.getElementById('actualBatchValue');
@@ -406,14 +431,18 @@
       actualBatchValueEl.innerText = Math.round(isApplied ? originalBatchSize : actualTotal) + ' kg';
 
       detailsEl.innerHTML = `
-        <div class="result-row"><span>Gepland water / ${ingredientName}:</span><span class="result-value">${Math.round(plannedWater)} kg / ${Math.round(baseForActualCalc - plannedWater)} kg</span></div>
-        <div class="result-row"><span>Werkelijk water / ${ingredientName}:</span><span class="result-value">${Math.round(actualWater)} kg / ${Math.round(actualIngredient)} kg</span></div>
-        <div class="result-row" style="margin-top: 6px;"><span>Verschil totaal:</span><span class="result-value" style="color:${Math.abs(diffTotal) < 0.5 ? '#27ae60' : '#c0392b'}">${diffTotal > 0 ? '+' : ''}${Math.round(diffTotal)} kg</span></div>`;
+        <div class="calc-step">
+          <strong>Analyse op basis van gekozen oorzaak (${missingComponent}):</strong><br>
+          • <strong>Gepland water / ${ingredientName}:</strong> ${Math.round(plannedWater)} kg / ${Math.round(baseForActualCalc - plannedWater)} kg<br>
+          • <strong>Werkelijk water / ${ingredientName}:</strong> ${Math.round(actualWater)} kg / ${Math.round(actualIngredient)} kg<br>
+          • <strong>Verschil in totale massa:</strong> <span style="color:${Math.abs(diffTotal) < 0.5 ? '#27ae60' : '#c0392b'}; font-weight:bold;">${diffTotal > 0 ? '+' : ''}${Math.round(diffTotal)} kg</span><br>
+          <em>Uitleg:</em> Berekend via de droge stof / vetbalans om te achterhalen hoeveel ${ingredientName} of water er door een weeg- of doseerfout feitelijk te weinig/te veel in de menger is gekomen.
+        </div>`;
     } else {
       if (!isApplied) computedActualTotal = 0;
       actualBatchLabelEl.innerText = isApplied ? 'Origineel geplande batchgrootte:' : 'Vermoedelijke werkelijke batchgrootte:';
       actualBatchValueEl.innerText = (isApplied && originalBatchSize !== null) ? Math.round(originalBatchSize) + ' kg' : '0 kg';
-      detailsEl.innerHTML = '<p style="margin:0; font-style:italic; color:#666;">Vul vereiste velden in.</p>';
+      detailsEl.innerHTML = '<p style="margin:0; font-style:italic; color:#666;">Vul vereiste velden in om de analyse te starten.</p>';
     }
 
     if (isApplied) {
