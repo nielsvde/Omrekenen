@@ -48,10 +48,10 @@
     .settings-row input { width: 80px !important; padding: 6px !important; font-size: 0.85rem !important; text-align: right; }
 
     /* Hoofdnavigatie voor de tools */
-    .main-tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+    .main-tabs { display: flex; gap: 6px; margin-bottom: 20px; }
     .main-tab-btn {
-      flex: 1; padding: 10px 6px; border: 1px solid var(--border-blue); background: #e9ecef;
-      font-size: 0.85rem; font-weight: 600; color: #495057; cursor: pointer; border-radius: 8px; transition: all 0.2s;
+      flex: 1; padding: 10px 4px; border: 1px solid var(--border-blue); background: #e9ecef;
+      font-size: 0.78rem; font-weight: 600; color: #495057; cursor: pointer; border-radius: 8px; transition: all 0.2s;
     }
     .main-tab-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
     .main-tool-content { display: none; text-align: left; }
@@ -73,7 +73,6 @@
     }
     textarea { resize: vertical; min-height: 100px; }
 
-    /* Specifieke kleine invoervelden voor Lattiz */
     .lattiz-input-small {
       width: 90px !important;
       padding: 6px 8px !important;
@@ -116,7 +115,35 @@
     .btn-install { background: var(--primary); color: white; border: none; font-size: 0.95rem; font-weight: bold; cursor: pointer; }
     .btn-install:hover { background: var(--primary-hover); }
     .ios-box { background: #e9ecef; color: #333; font-size: 0.85rem; text-align: center; line-height: 1.4; display: none; margin-top: 8px; }
+
+    /* Type selectie knoppen voor QR / Streepjescode */
+    .code-type-selector { display: flex; gap: 6px; margin-bottom: 16px; }
+    .code-type-btn {
+      flex: 1; padding: 10px; border: 1px solid var(--border-blue); background: #e9ecef;
+      font-size: 0.85rem; font-weight: 600; color: #495057; cursor: pointer; border-radius: 8px; transition: all 0.2s;
+    }
+    .code-type-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+    /* Grote weergave voor codes */
+    .code-display-box {
+      background: #ffffff; border: 1px solid var(--border-blue); border-radius: 12px;
+      padding: 24px 16px; text-align: center; min-height: 220px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    }
+    .code-display-box img {
+      max-width: 240px; width: 100%; height: auto; display: block; margin: 0 auto;
+    }
+    .code-display-box svg {
+      max-width: 100%; width: 100%; height: auto; display: block; margin: 0 auto;
+    }
+    .code-placeholder {
+      color: #888; font-style: italic; font-size: 0.9rem;
+    }
+    .code-section { display: none; }
+    .code-section.active { display: block; }
   </style>
+
+  <!-- JsBarcode library voor Code 128 streepjescodes -->
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
 
   <script>
     if ('serviceWorker' in navigator) {
@@ -173,6 +200,7 @@
   <div class="main-tabs">
     <button class="main-tab-btn active" onclick="switchMainTool('tool1', this)">Product correctie</button>
     <button class="main-tab-btn" onclick="switchMainTool('tool2', this)">Evap / Lattiz</button>
+    <button class="main-tab-btn" onclick="switchMainTool('tool3', this)">Code Generator</button>
   </div>
 
   <!-- TOOL 1: PRODUCT CORRECTIE -->
@@ -326,6 +354,33 @@
     </div>
   </div>
 
+  <!-- TOOL 3: CODE GENERATOR (QR / STREEPJESCODE) -->
+  <div id="tool3" class="main-tool-content">
+    <div class="form-group">
+      <label for="codeTextInput">Voer tekst of cijfercode in:</label>
+      <input type="text" id="codeTextInput" placeholder="Typ bijv. batchnummer of code..." oninput="generateCodes()">
+    </div>
+
+    <!-- Keuzeknoppen -->
+    <div class="code-type-selector">
+      <button type="button" class="code-type-btn active" onclick="switchCodeType('qr', this)">QR-code</button>
+      <button type="button" class="code-type-btn" onclick="switchCodeType('barcode', this)">Streepjescode (128)</button>
+    </div>
+
+    <!-- Grote weergave box -->
+    <div class="code-display-box">
+      <!-- QR Sectie -->
+      <div id="qrSection" class="code-section active">
+        <div id="qrContainer" class="code-placeholder">Geen invoer opgegeven</div>
+      </div>
+      <!-- Streepjescode Sectie -->
+      <div id="barcodeSection" class="code-section">
+        <svg id="barcodeSvg" style="display:none;"></svg>
+        <div id="barcodePlaceholder" class="code-placeholder">Geen invoer opgegeven</div>
+      </div>
+    </div>
+  </div>
+
   <div class="footer-actions">
     <a href="mailto:nielsvde@hotmail.com?subject=Feedback%20Correctie%20Calculator&body=Beste%20Niels,%0A%0AIk%20heb%20een%20vraag,%20tip%20of%20fout%20ontdekt%20in%20de%20Correctie%20Calculator:%0A%0A" class="feedback-link">
       💡 Tip of fout melden
@@ -408,14 +463,24 @@
     btn.classList.add('active');
     document.getElementById(toolId).classList.add('active');
 
-    // Toon het instellingenknopje (⚙️) alleen als we op tool2 (Evap / Lattiz) zijn
     const settingsBtn = document.getElementById('settingsBtn');
     const settingsPanel = document.getElementById('settingsPanel');
     if (toolId === 'tool2') {
       settingsBtn.classList.add('visible');
     } else {
       settingsBtn.classList.remove('visible');
-      settingsPanel.style.display = 'none'; // Sluit paneel als je wegklikt
+      settingsPanel.style.display = 'none';
+    }
+  }
+
+  function switchCodeType(type, btn) {
+    document.querySelectorAll('.code-type-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.code-section').forEach(s => s.classList.remove('active'));
+    btn.classList.add('active');
+    if (type === 'qr') {
+      document.getElementById('qrSection').classList.add('active');
+    } else {
+      document.getElementById('barcodeSection').classList.add('active');
     }
   }
 
@@ -461,7 +526,7 @@
   }
 
   function resetCalculator() {
-    ['batchSize', 'currentFat', 'targetFat', 'creamFat', 'lattizInput', 'lattizPackagesInput', 'lattizReprocessInput'].forEach(id => {
+    ['batchSize', 'currentFat', 'targetFat', 'creamFat', 'lattizInput', 'lattizPackagesInput', 'lattizReprocessInput', 'codeTextInput'].forEach(id => {
       const el = document.getElementById(id);
       if(el) el.value = '';
     });
@@ -474,6 +539,7 @@
     isApplied = false;
     onCauseChange();
     calculateLattiz();
+    generateCodes();
   }
 
   function calculateLattiz() {
@@ -494,7 +560,6 @@
       });
     }
 
-    // Factoren ophalen uit instellingen
     const fYield = parseNum(document.getElementById('facYield').value) || 1.08;
     const fWater = parseNum(document.getElementById('facWater').value) || 0.01;
     const fEvap = parseNum(document.getElementById('facEvap').value) || 0.99;
@@ -516,6 +581,42 @@
     document.getElementById('lattizWater').innerText = waterKg.toLocaleString('nl-NL') + ' kg';
     document.getElementById('lattizEvap').innerText = evapKg.toLocaleString('nl-NL') + ' kg';
     document.getElementById('lattizBulkOrder').innerText = bulkOrderVal.toLocaleString('nl-NL') + ' kg';
+  }
+
+  function generateCodes() {
+    const val = document.getElementById('codeTextInput').value.trim();
+    const qrContainer = document.getElementById('qrContainer');
+    const barcodeSvg = document.getElementById('barcodeSvg');
+    const barcodePlaceholder = document.getElementById('barcodePlaceholder');
+
+    if (val === '') {
+      qrContainer.innerHTML = 'Geen invoer opgegeven';
+      barcodeSvg.style.display = 'none';
+      barcodePlaceholder.style.display = 'block';
+    } else {
+      // Grote QR code via externe API (240x240 voor extra scherpte)
+      const encodedVal = encodeURIComponent(val);
+      qrContainer.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodedVal}" alt="QR Code">`;
+
+      // Extra grote en goed scanbare streepjescode (Code 128) via JsBarcode
+      try {
+        barcodeSvg.style.display = 'block';
+        barcodePlaceholder.style.display = 'none';
+        JsBarcode("#barcodeSvg", val, {
+          format: "CODE128",
+          lineColor: "#000",
+          width: 2.5,
+          height: 90,
+          displayValue: true,
+          fontSize: 16,
+          margin: 10
+        });
+      } catch (e) {
+        barcodeSvg.style.display = 'none';
+        barcodePlaceholder.style.display = 'block';
+        barcodePlaceholder.innerText = 'Tekst niet geschikt voor streepjescode';
+      }
+    }
   }
 
   function calculate() {
