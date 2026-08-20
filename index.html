@@ -78,6 +78,13 @@
     }
     textarea { resize: vertical; min-height: 100px; }
 
+    .lattiz-input-small {
+      width: 90px !important;
+      padding: 6px 8px !important;
+      font-size: 0.9rem !important;
+      text-align: right;
+    }
+
     .tabs-wrapper { margin-top: 24px; }
     .tab-buttons { display: flex; gap: 0; margin-bottom: 0; width: 100%; box-sizing: border-box; }
     .tab-btn {
@@ -85,8 +92,10 @@
       background: #e1eeef; font-size: 0.85rem; font-weight: 600; color: #555; cursor: pointer; border-radius: 8px 8px 0 0;
       text-align: center;
     }
+    /* Actieve sub-tabblad wit gemaakt en de onderrand/scheidslijn weggelaten */
     .tab-btn.active { background: #ffffff; color: var(--primary); font-weight: 700; border-bottom: 1px solid #ffffff; }
     
+    /* Container voor resultaat/berekening ook wit gemaakt met doorlopende rand */
     .tab-content-container {
       background: var(--card-blue-bg); border: 1px solid var(--border-blue); border-radius: 0 0 12px 12px; padding: 20px 16px; text-align: left; box-sizing: border-box; width: 100%; margin-top: -1px; position: relative; z-index: 2;
     }
@@ -98,44 +107,163 @@
     .tab-content.active { display: block; }
 
     .result-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 10px; font-size: 0.92rem; }
+    .result-row:last-child { margin-bottom: 0; }
     .result-value { font-weight: bold; white-space: nowrap; }
     .section-title { font-size: 0.88rem; font-weight: 700; color: var(--primary); margin: 0 0 10px; text-transform: uppercase; letter-spacing: 0.5px; }
     .calc-step { margin-bottom: 12px; font-size: 0.85rem; line-height: 1.4; background: #f8f9fa; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0; }
+    .calc-step:last-child { margin-bottom: 0; }
+    .error-box { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; padding: 12px; border-radius: 8px; font-size: 0.85rem; line-height: 1.4; margin-bottom: 14px; }
     
     .btn-apply-batch {
       background: #e7f1ff; border: 1px solid #b6d4fe; color: var(--primary-hover);
-      padding: 8px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; width: 100%; margin-top: 10px;
+      padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer; width: 100%; margin-top: 6px; box-sizing: border-box;
     }
+    .btn-apply-batch:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
     
-    /* Highlight box voor werkelijke batch */
-    .actual-batch-box {
-      background: #ffffff; border: 2px solid var(--primary); border-radius: 10px; padding: 15px; margin-bottom: 15px; text-align: center;
+    .footer-actions { margin-top: 24px; display: flex; flex-direction: column; gap: 10px; align-items: center; }
+    .feedback-link { display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem; color: #6c757d; text-decoration: none; padding: 6px 12px; border-radius: 6px; }
+    .feedback-link:hover { background: #e9ecef; color: var(--primary); }
+    
+    .btn-install, .ios-box { width: 100%; padding: 12px; border-radius: 8px; box-sizing: border-box; display: block; }
+    .btn-install { background: var(--primary); color: white; border: none; font-size: 0.95rem; font-weight: bold; cursor: pointer; }
+    .btn-install:hover { background: var(--primary-hover); }
+    .ios-box { background: #e9ecef; color: #333; font-size: 0.85rem; text-align: center; line-height: 1.4; display: none; margin-top: 8px; }
+
+    /* Type selectie knoppen voor QR / Streepjescode */
+    .code-type-selector { display: flex; gap: 0; margin-bottom: 0; width: 100%; box-sizing: border-box; }
+    .code-type-btn {
+      flex: 1; padding: 10px; border: 1px solid var(--border-blue); background: #e9ecef;
+      font-size: 0.85rem; font-weight: 600; color: #495057; cursor: pointer; border-radius: 8px 8px 0 0; transition: all 0.2s;
     }
+    .code-type-btn.active { background: #ffffff; color: var(--primary); border-color: var(--border-blue); border-bottom: 1px solid #ffffff; }
+
+    /* Scan knop styling */
+    .btn-scan {
+      background: #28a745; color: white; border: none; border-radius: 8px;
+      padding: 10px; font-size: 0.9rem; font-weight: 600; cursor: pointer; width: 100%; box-sizing: border-box;
+      margin-bottom: 16px; display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .btn-scan:hover { background: #218838; }
+
+    /* Grote weergave voor codes */
+    .code-display-box {
+      background: #ffffff; border: 1px solid var(--border-blue); border-radius: 12px;
+      padding: 24px 16px; text-align: center; min-height: 220px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-sizing: border-box;
+    }
+    .code-display-box img {
+      max-width: 240px; width: 100%; height: auto; display: block; margin: 0 auto;
+    }
+    .code-display-box svg {
+      max-width: 100%; width: 100%; height: auto; display: block; margin: 0 auto;
+    }
+    .code-placeholder {
+      color: #888; font-style: italic; font-size: 0.9rem;
+    }
+    .code-section { display: none; }
+    .code-section.active { display: block; }
   </style>
 
-  <!-- JS bibliotheken -->
+  <!-- JsBarcode library voor Code 128 streepjescodes -->
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+  <!-- Tesseract.js voor tekstherkenning (OCR) van cijferreeksen / ordernummers -->
   <script src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js'></script>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').then(reg => reg.update()).catch(err => console.error('SW Error:', err));
+      });
+      let refreshing = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!refreshing) { refreshing = true; window.location.reload(); }
+      });
+    }
+  </script>
 </head>
 <body>
 
 <div class="card">
-  <!-- Header en Navigatie zoals in je originele code -->
   <div class="header-container">
     <div class="header-branding">
       <img src="logo.png" alt="Logo" class="header-logo">
-      <img src="logotekst.png" alt="Calculator" class="header-text-img">
+      <img src="logotekst.png" alt="Product correctie calculator" class="header-text-img">
     </div>
     <div class="header-buttons">
-      <button type="button" id="settingsBtn" class="btn-header-action" onclick="toggleSettings()" title="Instellingen">⚙️</button>
-      <button type="button" class="btn-header-action visible" onclick="resetCalculator()" title="Reset">↺</button>
+      <button type="button" id="settingsBtn" class="btn-header-action" onclick="toggleSettings()" title="Instellingen factoren">⚙️</button>
+      <button type="button" class="btn-header-action visible" onclick="resetCalculator()" title="Wis alle invoer">↺ Reset</button>
     </div>
   </div>
 
-  <!-- Inhoud van Tool 1 (Product correctie) -->
+  <!-- Verborgen Instellingen Paneel -->
+  <div id="settingsPanel">
+    <div class="section-title" style="margin-bottom: 8px;">Factoren Instellingen</div>
+    <div class="settings-row">
+      <span>Factor Product Opbrengst (standaard 1.08):</span>
+      <input type="text" inputmode="decimal" id="facYield" value="1.08" oninput="formatInput(this); calculateLattiz()">
+    </div>
+    <div class="settings-row">
+      <span>Factor Water te boeken (standaard 0.01):</span>
+      <input type="text" inputmode="decimal" id="facWater" value="0.01" oninput="formatInput(this); calculateLattiz()">
+    </div>
+    <div class="settings-row">
+      <span>Factor Evap te boeken (standaard 0.99):</span>
+      <input type="text" inputmode="decimal" id="facEvap" value="0.99" oninput="formatInput(this); calculateLattiz()">
+    </div>
+    <div class="settings-row">
+      <span>Factor Verpakking naar Bulk (standaard 4):</span>
+      <input type="text" inputmode="decimal" id="facPkgMult" value="4" oninput="formatInput(this); calculateLattiz()">
+    </div>
+    <div class="settings-row">
+      <span>Factor Marge/Toeslag Bulk (standaard 1.1):</span>
+      <input type="text" inputmode="decimal" id="facBulkMult" value="1.1" oninput="formatInput(this); calculateLattiz()">
+    </div>
+  </div>
+  
+  <!-- Hoofdnavigatie voor de tools -->
+  <div class="main-tabs">
+    <button class="main-tab-btn active" onclick="switchMainTool('tool1', this)">Product correctie</button>
+    <button class="main-tab-btn" onclick="switchMainTool('tool2', this)">Evap / Lattiz</button>
+    <button class="main-tab-btn" onclick="switchMainTool('tool3', this)">Code Generator</button>
+  </div>
+
+  <!-- CONTAINER VOOR TOOL 1 -->
   <div id="tool1" class="main-tool-content tab-content-container active">
-    <!-- Formuliervelden blijven gelijk -->
-    
+    <div class="form-group">
+      <div class="label-container">
+        <label for="batchSize">Geplande batchgrootte (kg):</label>
+        <span class="info-icon" onclick="toggleTooltip('batchTooltip')">?</span>
+      </div>
+      <input type="text" inputmode="decimal" id="batchSize" placeholder="bijv. 3517" oninput="formatInput(this); checkIfManuallyEdited(); calculate()">
+      <div id="batchTooltip" class="info-tooltip"><strong>Let op:</strong> De werkelijke batchgrootte kan afwijken als een grondstof onvolledig is gedoseerd in de mixtank!</div>
+    </div>
+
+    <div class="form-group">
+      <label for="currentFat">Gemeten vetgehalte batch (%):</label>
+      <input type="text" inputmode="decimal" id="currentFat" placeholder="bijv. 27.42" oninput="formatInput(this); calculate()" onblur="formatDecimals(this, 2)">
+    </div>
+
+    <div class="form-group">
+      <label for="targetFat">Gewenst vetgehalte (%):</label>
+      <input type="text" inputmode="decimal" id="targetFat" placeholder="bijv. 30.00" oninput="formatInput(this); calculate()" onblur="formatDecimals(this, 2)">
+    </div>
+
+    <div class="form-group">
+      <label for="missingComponent">Oorzaak afwijking:</label>
+      <select id="missingComponent" onchange="onCauseChange()">
+        <option value="cream_less">Te weinig room gedoseerd</option>
+        <option value="cream_more">Te veel room gedoseerd</option>
+        <option value="fat_less">Te weinig vloeibaar vet gedoseerd</option>
+        <option value="fat_more">Te veel vloeibaar vet gedoseerd</option>
+        <option value="water_less">Te weinig water gedoseerd</option>
+        <option value="water_more">Te veel water gedoseerd</option>
+      </select>
+    </div>
+
+    <div class="form-group" id="creamFatGroup">
+      <label id="creamFatLabel" for="creamFat">Vetgehalte toe te voegen room (%):</label>
+      <input type="text" inputmode="decimal" id="creamFat" placeholder="bijv. 43.1" oninput="formatInput(this); calculate()" onblur="formatDecimals(this, 2)">
+    </div>
+
     <div class="tabs-wrapper">
       <div class="tab-buttons">
         <button class="tab-btn active" onclick="switchTab('tab-resultat', this)">Resultaat</button>
@@ -143,34 +271,617 @@
       </div>
 
       <div class="sub-content-container">
+        <!-- Tab 1 -->
         <div id="tab-resultat" class="tab-content active">
-          
-          <!-- Nieuwe, prominentere weergave van de batchgrootte -->
-          <div class="actual-batch-box">
-            <div id="actualBatchLabel" style="font-size: 0.8rem; color: #666; margin-bottom: 4px;">Vermoedelijke werkelijke batchgrootte:</div>
-            <div id="actualBatchValue" style="font-size: 1.5rem; font-weight: 800; color: var(--primary);">0 kg</div>
+          <div id="errorSection"></div>
+          <div style="margin-bottom: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span id="actualBatchLabel" style="font-size: 0.85rem; color: #555;">Vermoedelijke werkelijke batchgrootte:</span>
+              <span id="actualBatchValue" class="result-value" style="font-size: 1.1rem; color: var(--primary);">0 kg</span>
+            </div>
             <button type="button" class="btn-apply-batch" onclick="toggleBatchSizeState()">↺ Overnemen als geplande batch</button>
           </div>
 
+          <hr style="border:0; border-top: 1px solid var(--border-blue); margin: 14px 0;">
+
           <div class="result-row" id="rowAddIngredient">
-            <span id="addLabel">Hoeveelheid toevoegen:</span>
+            <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+              <span id="addLabel">Hoeveelheid room toevoegen:</span>
+              <span class="info-icon" onclick="toggleTooltip('addTooltip')">?</span>
+            </div>
             <span id="addValue" class="result-value">0 kg</span>
           </div>
+          <div id="addTooltip" class="info-tooltip" style="margin-bottom: 10px;"><strong>Let op:</strong> 100% Room toevoegen zonder water inspoel!</div>
+
           <div class="result-row" id="rowAddWater">
-            <span>Hoeveelheid water:</span>
+            <span>Hoeveelheid water toevoegen:</span>
             <span id="waterToAdd" class="result-value">0 kg</span>
           </div>
+          <div class="result-row" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border-blue);">
+            <span>Totale grootte batch na correctie:</span>
+            <span id="totalBatch" class="result-value">0 kg</span>
+          </div>
         </div>
-        <!-- Tab 2 Berekening blijft gelijk -->
+
+        <!-- Tab 2 -->
+        <div id="tab-berekening" class="tab-content">
+          <div class="section-title">1. Analyse werkelijke batch inhoud</div>
+          <div id="actualBatchDetails"><p style="margin:0; font-style:italic; color:#666;">Vul de gegevens in om de werkelijke batchberekening te zien.</p></div>
+
+          <hr style="border:0; border-top: 2px dashed #b6d4fe; margin: 18px 0;">
+
+          <div class="section-title">2. Correctie berekening stappen</div>
+          <div id="calcSteps"><p style="margin:0; font-style:italic; color:#666;">Vul de gegevens in om de berekening in stappen te zien.</p></div>
+        </div>
       </div>
     </div>
   </div>
-  <!-- Overige tools en footer blijven gelijk -->
+
+  <!-- CONTAINER VOOR TOOL 2: EVAP / LATTIZ -->
+  <div id="tool2" class="main-tool-content tab-content-container">
+    <div class="form-group">
+      <div class="label-container">
+        <label for="lattizInput">Plak Excel gegevens (productie runs):</label>
+        <span class="info-icon" onclick="toggleTooltip('lattizTooltip')">?</span>
+      </div>
+      <textarea id="lattizInput" placeholder="Plak hier je getallen uit Excel (kolom of rij)..." oninput="calculateLattiz()"></textarea>
+      <div id="lattizTooltip" class="info-tooltip"><strong>Instructie:</strong> Kopieer je getallen uit Excel en plak ze direct hierin. Alle getallen worden automatisch opgeteld.</div>
+    </div>
+
+    <div class="tab-content-container" style="border-radius: 12px; margin-top: 10px; background: #ffffff; border: 1px solid var(--border-blue);">
+      <div class="section-title">Overzicht Lattiz Productie</div>
+      
+      <div class="result-row" style="margin-bottom: 10px;">
+        <span>Aantal productie runs:</span>
+        <span id="lattizRuns" class="result-value" style="color: var(--primary);">0</span>
+      </div>
+
+      <div class="result-row" style="margin-bottom: 12px;">
+        <span>Totaal geproduceerd product:</span>
+        <span id="lattizTotalLiters" class="result-value" style="font-size: 1.05rem; color: var(--primary);">0 L</span>
+      </div>
+      
+      <div class="result-row" style="margin-bottom: 12px; padding-top: 8px; border-top: 1px solid var(--border-blue);">
+        <span>Totaal opbrengst product:</span>
+        <span id="lattizYieldKg" class="result-value" style="font-size: 1.1rem; color: var(--primary);">0 kg</span>
+      </div>
+
+      <hr style="border:0; border-top: 1px solid var(--border-blue); margin: 12px 0;">
+
+      <div class="result-row" style="margin-bottom: 10px;">
+        <span>Hoeveelheid water te boeken:</span>
+        <span id="lattizWater" class="result-value">0 kg</span>
+      </div>
+
+      <div class="result-row" style="margin-bottom: 12px;">
+        <span>Hoeveelheid evap te boeken:</span>
+        <span id="lattizEvap" class="result-value">0 kg</span>
+      </div>
+
+      <hr style="border:0; border-top: 1px solid var(--border-blue); margin: 12px 0;">
+
+      <div class="result-row" style="margin-bottom: 10px;">
+        <span>Totaal hoeveelheid verpakkingen afgevuld:</span>
+        <input type="text" inputmode="numeric" maxlength="6" id="lattizPackagesInput" class="lattiz-input-small" placeholder="0" oninput="calculateLattiz()">
+      </div>
+
+      <div class="result-row" style="margin-bottom: 12px;">
+        <span>Totaal hoeveelheid herverwerking:</span>
+        <input type="text" inputmode="decimal" id="lattizReprocessInput" class="lattiz-input-small" placeholder="0" oninput="formatInput(this); calculateLattiz()">
+      </div>
+
+      <div class="result-row" style="padding-top: 8px; border-top: 1px solid var(--border-blue);">
+        <span>Hoeveelheid bulk boeken op vulorder:</span>
+        <span id="lattizBulkOrder" class="result-value" style="color: var(--primary);">0 kg</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTAINER VOOR TOOL 3: CODE GENERATOR & SCANNER -->
+  <div id="tool3" class="main-tool-content tab-content-container">
+    <div class="code-type-selector">
+      <button type="button" class="code-type-btn active" onclick="switchCodeType('barcode', this)">Streepjescode (128)</button>
+      <button type="button" class="code-type-btn" onclick="switchCodeType('qr', this)">QR-code</button>
+    </div>
+
+    <div style="background: #ffffff; border: 1px solid var(--border-blue); border-radius: 0 0 12px 12px; padding: 16px; margin-top: -1px;">
+      <!-- Knop om foto te maken van een ordernummer/cijferreeks -->
+      <button type="button" id="scanBtn" class="btn-scan" onclick="startCameraScan()">
+        📷 Scan ordernummer / cijfers via foto
+      </button>
+      <input type="file" id="scanFileInput" accept="image/*" capture="environment" style="display:none;" onchange="handleOCRScan(this)">
+
+      <div class="form-group" style="margin-top: 10px;">
+        <label for="codeTextInput">Voer tekst of cijfercode in:</label>
+        <input type="text" id="codeTextInput" placeholder="Typ of scan een code..." oninput="generateCodes()">
+      </div>
+
+      <!-- Grote weergave box -->
+      <div class="code-display-box">
+        <div id="barcodeSection" class="code-section active">
+          <svg id="barcodeSvg" style="display:none;"></svg>
+          <div id="barcodePlaceholder" class="code-placeholder">Geen invoer opgegeven</div>
+        </div>
+        <div id="qrSection" class="code-section">
+          <div id="qrContainer" class="code-placeholder">Geen invoer opgegeven</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-actions">
+    <a href="mailto:nielsvde@hotmail.com?subject=Feedback%20Correctie%20Calculator&body=Beste%2520Niels,%0A%0AIk%20heb%20een%20vraag,%20tip%20of%20fout%20ontdekt%20in%20de%20Correctie%20Calculator:%0A%0A" class="feedback-link">
+      💡 Tip of fout melden
+    </a>
+    <button id="installBtn" class="btn-install">📲 Installeer app</button>
+    <div id="iosInstruction" class="ios-box">
+      <strong>Instructie voor iPhone/iPad:</strong><br>
+      Tik onderaan in Safari op het <strong>Deel-icoon</strong> <span style="font-size: 1.1rem;">⎋</span> en kies <strong>'Zet op beginscherm'</strong>.
+    </div>
+  </div>
 </div>
 
 <script>
-  // Voeg hier je bestaande JavaScript functies toe...
-  // Zorg dat de calculate() functie de actualBatchValue bijwerkt.
+  let computedActualTotal = 0, originalBatchSize = null, isApplied = false;
+
+  function toggleSettings() {
+    const password = prompt("Voer het wachtwoord in om de instellingen te openen:");
+    if (password === "Pcc") {
+      const panel = document.getElementById('settingsPanel');
+      panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+    } else if (password !== null) {
+      alert("Onjuist wachtwoord!");
+    }
+  }
+
+  function formatInput(input) {
+    if (input.value.includes(',')) {
+      const cursorPos = input.selectionStart;
+      input.value = input.value.replace(/,/g, '.');
+      input.setSelectionRange(cursorPos, cursorPos);
+    }
+    saveSettings();
+  }
+
+  function saveSettings() {
+    localStorage.setItem('facYield', document.getElementById('facYield').value);
+    localStorage.setItem('facWater', document.getElementById('facWater').value);
+    localStorage.setItem('facEvap', document.getElementById('facEvap').value);
+    localStorage.setItem('facPkgMult', document.getElementById('facPkgMult').value);
+    localStorage.setItem('facBulkMult', document.getElementById('facBulkMult').value);
+  }
+
+  function loadSettings() {
+    if(localStorage.getItem('facYield')) document.getElementById('facYield').value = localStorage.getItem('facYield');
+    if(localStorage.getItem('facWater')) document.getElementById('facWater').value = localStorage.getItem('facWater');
+    if(localStorage.getItem('facEvap')) document.getElementById('facEvap').value = localStorage.getItem('facEvap');
+    if(localStorage.getItem('facPkgMult')) document.getElementById('facPkgMult').value = localStorage.getItem('facPkgMult');
+    if(localStorage.getItem('facBulkMult')) document.getElementById('facBulkMult').value = localStorage.getItem('facBulkMult');
+  }
+
+  function formatDecimals(input, decimals) {
+    const val = parseNum(input.value);
+    if (val > 0) {
+      input.value = val.toFixed(decimals);
+      calculate();
+    }
+  }
+
+  function parseNum(val) {
+    if (!val) return 0;
+    const cleanVal = val.toString().replace(/,/g, '.');
+    return parseFloat(cleanVal) || 0;
+  }
+
+  function toggleTooltip(id) {
+    const el = document.getElementById(id);
+    el.style.display = el.style.display === 'block' ? 'none' : 'block';
+  }
+
+  function switchTab(tabId, btn) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(tabId).classList.add('active');
+  }
+
+  function switchMainTool(toolId, btn) {
+    document.querySelectorAll('.main-tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.main-tool-content').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(toolId).classList.add('active');
+
+    const settingsBtn = document.getElementById('settingsBtn');
+    const settingsPanel = document.getElementById('settingsPanel');
+    if (toolId === 'tool2') {
+      settingsBtn.classList.add('visible');
+    } else {
+      settingsBtn.classList.remove('visible');
+      settingsPanel.style.display = 'none';
+    }
+  }
+
+  function switchCodeType(type, btn) {
+    document.querySelectorAll('.code-type-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.code-section').forEach(s => s.classList.remove('active'));
+    btn.classList.add('active');
+    if (type === 'qr') {
+      document.getElementById('qrSection').classList.add('active');
+    } else {
+      document.getElementById('barcodeSection').classList.add('active');
+    }
+  }
+
+  function startCameraScan() {
+    document.getElementById('scanFileInput').click();
+  }
+
+  async function handleOCRScan(input) {
+    const file = input.files[0];
+    if (!file) return;
+
+    const scanBtn = document.getElementById('scanBtn');
+    scanBtn.innerText = '⏳ Bezig met analyseren van foto...';
+    scanBtn.disabled = true;
+
+    try {
+      const { data: { text } } = await Tesseract.recognize(file, 'eng');
+      const cleanText = text.replace(/[\r\n]+/g, ' ').trim();
+      
+      if (cleanText.length > 0) {
+        const match = cleanText.match(/[A-Za-z0-9\-_]{3,}/);
+        document.getElementById('codeTextInput').value = match ? match[0] : cleanText;
+        generateCodes();
+      } else {
+        alert('Geen leesbare tekst of cijfers gevonden op de foto. Probeer het opnieuw.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Er is een fout opgetreden bij het lezen van de foto.');
+    } finally {
+      scanBtn.innerText = '📷 Scan ordernummer / cijfers via foto';
+      scanBtn.disabled = false;
+      input.value = '';
+    }
+  }
+
+  function onCauseChange() {
+    const cause = document.getElementById('missingComponent').value;
+    const creamFatGroup = document.getElementById('creamFatGroup');
+    const addLabel = document.getElementById('addLabel');
+
+    if (cause.startsWith('cream')) {
+      creamFatGroup.style.display = 'block';
+      addLabel.innerText = 'Hoeveelheid room toevoegen:';
+    } else {
+      creamFatGroup.style.display = 'none';
+      addLabel.innerText = cause.startsWith('fat') ? 'Hoeveelheid vloeibaar vet toevoegen:' : 'Hoeveelheid room/vet toevoegen:';
+    }
+    calculate();
+  }
+
+  function checkIfManuallyEdited() {
+    if (isApplied) {
+      const currentInputVal = parseNum(document.getElementById('batchSize').value);
+      if (currentInputVal !== Math.round(computedActualTotal)) {
+        isApplied = false;
+        originalBatchSize = null;
+      }
+    }
+  }
+
+  function toggleBatchSizeState() {
+    const batchInput = document.getElementById('batchSize');
+    if (!isApplied && computedActualTotal > 0) {
+      if (originalBatchSize === null) {
+        originalBatchSize = parseNum(batchInput.value);
+      }
+      batchInput.value = Math.round(computedActualTotal);
+      isApplied = true;
+    } else if (isApplied && originalBatchSize !== null) {
+      batchInput.value = originalBatchSize;
+      originalBatchSize = null;
+      isApplied = false;
+    }
+    calculate();
+  }
+
+  function resetCalculator() {
+    ['batchSize', 'currentFat', 'targetFat', 'creamFat', 'lattizInput', 'lattizPackagesInput', 'lattizReprocessInput', 'codeTextInput'].forEach(id => {
+      const el = document.getElementById(id);
+      if(el) el.value = '';
+    });
+    document.getElementById('missingComponent').value = 'cream_less';
+    ['batchTooltip', 'addTooltip', 'lattizTooltip'].forEach(id => {
+      const el = document.getElementById(id);
+      if(el) el.style.display = 'none';
+    });
+    originalBatchSize = null;
+    isApplied = false;
+    onCauseChange();
+    calculateLattiz();
+    generateCodes();
+  }
+
+  function calculateLattiz() {
+    const rawText = document.getElementById('lattizInput').value;
+    const matches = rawText.match(/[0-9]+([.,][0-9]+)?/g);
+    
+    let totalLiters = 0;
+    let runCount = 0;
+    
+    if (rawText.trim() !== '') {
+      const lines = rawText.split(/\r?\n/).filter(line => line.trim() !== '');
+      runCount = lines.length;
+    }
+
+    if (matches) {
+      matches.forEach(m => {
+        totalLiters += parseNum(m);
+      });
+    }
+
+    const fYield = parseNum(document.getElementById('facYield').value) || 1.08;
+    const fWater = parseNum(document.getElementById('facWater').value) || 0.01;
+    const fEvap = parseNum(document.getElementById('facEvap').value) || 0.99;
+    const fPkgMult = parseNum(document.getElementById('facPkgMult').value) || 4;
+    const fBulkMult = parseNum(document.getElementById('facBulkMult').value) || 1.1;
+
+    const yieldKg = Math.round(totalLiters * fYield);
+    const waterKg = Math.round(yieldKg * fWater);
+    const evapKg = Math.round(yieldKg * fEvap);
+    
+    const packagesVal = parseNum(document.getElementById('lattizPackagesInput').value);
+    const reprocessVal = parseNum(document.getElementById('lattizReprocessInput').value);
+
+    const bulkOrderVal = Math.round((packagesVal * fPkgMult) * fBulkMult + reprocessVal);
+
+    document.getElementById('lattizRuns').innerText = runCount;
+    document.getElementById('lattizTotalLiters').innerText = Math.round(totalLiters).toLocaleString('nl-NL') + ' L';
+    document.getElementById('lattizYieldKg').innerText = yieldKg.toLocaleString('nl-NL') + ' kg';
+    document.getElementById('lattizWater').innerText = waterKg.toLocaleString('nl-NL') + ' kg';
+    document.getElementById('lattizEvap').innerText = evapKg.toLocaleString('nl-NL') + ' kg';
+    document.getElementById('lattizBulkOrder').innerText = bulkOrderVal.toLocaleString('nl-NL') + ' kg';
+  }
+
+  function generateCodes() {
+    const val = document.getElementById('codeTextInput').value.trim();
+    const qrContainer = document.getElementById('qrContainer');
+    const barcodeSvg = document.getElementById('barcodeSvg');
+    const barcodePlaceholder = document.getElementById('barcodePlaceholder');
+
+    if (val === '') {
+      qrContainer.innerHTML = 'Geen invoer opgegeven';
+      barcodeSvg.style.display = 'none';
+      barcodePlaceholder.style.display = 'block';
+    } else {
+      const encodedVal = encodeURIComponent(val);
+      qrContainer.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodedVal}" alt="QR Code">`;
+
+      try {
+        barcodeSvg.style.display = 'block';
+        barcodePlaceholder.style.display = 'none';
+        JsBarcode("#barcodeSvg", val, {
+          format: "CODE128",
+          lineColor: "#000",
+          width: 2.5,
+          height: 90,
+          displayValue: true,
+          fontSize: 16,
+          margin: 10
+        });
+      } catch (e) {
+        barcodeSvg.style.display = 'none';
+        barcodePlaceholder.style.display = 'block';
+        barcodePlaceholder.innerText = 'Tekst niet geschikt voor streepjescode';
+      }
+    }
+  }
+
+  function calculate() {
+    const inputBatchSize = parseNum(document.getElementById('batchSize').value);
+    
+    ['currentFat', 'targetFat', 'creamFat'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el.value !== '' && !el.matches(':focus')) {
+        const val = parseNum(el.value);
+        if (val > 0) el.value = val.toFixed(2);
+      }
+    });
+
+    const currentFat = parseNum(document.getElementById('currentFat').value);
+    const targetFat = parseNum(document.getElementById('targetFat').value);
+    const missingComponent = document.getElementById('missingComponent').value;
+    
+    const activeBatchSize = (isApplied && computedActualTotal > 0) ? computedActualTotal : inputBatchSize;
+
+    let additionType = 'cream';
+    let effectiveCreamFat = parseNum(document.getElementById('creamFat').value);
+
+    if (missingComponent.startsWith('fat')) { additionType = 'fat'; effectiveCreamFat = 100; }
+    else if (missingComponent.startsWith('water')) { additionType = 'water'; }
+
+    const rowAddIngredient = document.getElementById('rowAddIngredient');
+    const rowAddWater = document.getElementById('rowAddWater');
+    const errorSection = document.getElementById('errorSection');
+
+    let addAmount = 0, waterToAdd = 0, stepsHtml = '';
+    const ingredientName = additionType === 'fat' ? 'vloeibaar vet' : 'room';
+
+    const isMoreCause = ['cream_more', 'fat_more', 'water_less'].includes(missingComponent);
+    const isLessCause = ['cream_less', 'fat_less', 'water_more'].includes(missingComponent);
+    let hasError = false;
+
+    if (inputBatchSize > 0 && currentFat > 0 && targetFat > 0) {
+      if (isMoreCause && currentFat < targetFat) {
+        hasError = true;
+        errorSection.innerHTML = `<div class="error-box"><strong>⚠️ Onmogelijke combinatie!</strong><br>Gemeten vetgehalte (${currentFat.toFixed(2)}%) is te laag voor deze oorzaak. Moet hoger zijn dan ${targetFat.toFixed(2)}%.</div>`;
+      } else if (isLessCause && currentFat > targetFat) {
+        hasError = true;
+        errorSection.innerHTML = `<div class="error-box"><strong>⚠️ Onmogelijke combinatie!</strong><br>Gemeten vetgehalte (${currentFat.toFixed(2)}%) is te hoog voor deze oorzaak. Moet lager zijn dan ${targetFat.toFixed(2)}%.</div>`;
+      } else if (currentFat < targetFat && additionType === 'cream' && effectiveCreamFat <= targetFat && effectiveCreamFat > 0) {
+        hasError = true;
+        errorSection.innerHTML = `<div class="error-box"><strong>⚠️ Ongeldig vetgehalte!</strong><br>Room vetgehalte (${effectiveCreamFat.toFixed(2)}%) moet hoger zijn dan gewenst vetgehalte (${targetFat.toFixed(2)}%).</div>`;
+      } else {
+        errorSection.innerHTML = '';
+      }
+    } else {
+      errorSection.innerHTML = '';
+    }
+
+    if (!hasError && activeBatchSize > 0) {
+      if (currentFat > 0 && targetFat > currentFat) {
+        rowAddIngredient.style.display = 'flex';
+        rowAddWater.style.display = 'none';
+        if (effectiveCreamFat > targetFat) {
+          addAmount = ((targetFat - currentFat) / (effectiveCreamFat - targetFat)) * activeBatchSize;
+          const currentFatKg = (activeBatchSize * currentFat) / 100;
+          
+          stepsHtml = `
+            <div class="calc-step">
+              <strong>Stap 1: Berekening huidige vethoeveelheid</strong><br>
+              We vermenigvuldigen de actieve batchgrootte (${Math.round(activeBatchSize)} kg) met het gemeten vetgehalte (${currentFat.toFixed(2)}%).<br>
+              <em>Formule:</em> ${Math.round(activeBatchSize)} × (${currentFat.toFixed(2)} / 100) = <strong>${currentFatKg.toFixed(2)} kg vet</strong>.
+            </div>
+            <div class="calc-step">
+              <strong>Stap 2: Berekening benodigde ${ingredientName}</strong><br>
+              Om het vetgehalte op te trekken naar ${targetFat.toFixed(2)}% met ${ingredientName} van ${effectiveCreamFat.toFixed(2)}% vet, gebruiken we de mengformule (massa-balans).<br>
+              <em>Formule:</em> ((${targetFat.toFixed(2)} - ${currentFat.toFixed(2)}) / (${effectiveCreamFat.toFixed(2)} - ${targetFat.toFixed(2)})) × ${Math.round(activeBatchSize)}<br>
+              Uitkomst: <strong>${addAmount.toFixed(2)} kg</strong> (wordt afgerond op hele kilo's: <strong>${Math.round(addAmount)} kg</strong>).
+            </div>
+            <div class="calc-step">
+              <strong>Stap 3: Totaaloverzicht na correctie</strong><br>
+              Nieuwe totale batchgrootte = Actieve batch (${Math.round(activeBatchSize)} kg) + toe te voegen ${ingredientName} (${Math.round(addAmount)} kg) = <strong>${Math.round(activeBatchSize + addAmount)} kg</strong>.
+            </div>`;
+        }
+      } else if (currentFat > targetFat && targetFat > 0) {
+        rowAddIngredient.style.display = 'none';
+        rowAddWater.style.display = 'flex';
+        waterToAdd = ((currentFat / targetFat) - 1) * activeBatchSize;
+        
+        stepsHtml = `
+          <div class="calc-step">
+            <strong>Stap 1: Analyse huidige vethoeveelheid</strong><br>
+            De huidige hoeveelheid vet in de batch bedraagt: ${Math.round(activeBatchSize)} kg × ${currentFat.toFixed(2)}% = <strong>${(activeBatchSize * currentFat / 100).toFixed(2)} kg vet</strong>.
+          </div>
+          <div class="calc-step">
+            <strong>Stap 2: Berekening benodigde water</strong><br>
+            Omdat het vetgehalte te hoog is (${currentFat.toFixed(2)}% t.o.v. gewenst ${targetFat.toFixed(2)}%), moeten we de batch verdunnen met water.<br>
+            <em>Formule:</em> ((${currentFat.toFixed(2)} / ${targetFat.toFixed(2)}) - 1) × ${Math.round(activeBatchSize)}<br>
+            Uitkomst: <strong>${waterToAdd.toFixed(2)} kg</strong> (afgerond: <strong>${Math.round(waterToAdd)} kg water</strong>).
+          </div>
+          <div class="calc-step">
+            <strong>Stap 3: Totaaloverzicht na verdunning</strong><br>
+            Nieuwe totale batchgrootte = ${Math.round(activeBatchSize)} kg + ${Math.round(waterToAdd)} kg water = <strong>${Math.round(activeBatchSize + waterToAdd)} kg</strong>.
+          </div>`;
+      }
+    }
+
+    document.getElementById('addValue').innerText = Math.round(addAmount) + ' kg';
+    document.getElementById('waterToAdd').innerText = Math.round(waterToAdd) + ' kg';
+    document.getElementById('totalBatch').innerText = Math.round(activeBatchSize + addAmount + waterToAdd) + ' kg';
+    document.getElementById('calcSteps').innerHTML = stepsHtml || '<p style="margin:0; color:#666;">Vul gegevens in om de stappen te tonen.</p>';
+
+    const actualBatchLabelEl = document.getElementById('actualBatchLabel');
+    const actualBatchValueEl = document.getElementById('actualBatchValue');
+    const detailsEl = document.getElementById('actualBatchDetails');
+    const applyButton = document.querySelector('.btn-apply-batch');
+
+    const baseForActualCalc = isApplied && originalBatchSize !== null ? originalBatchSize : inputBatchSize;
+
+    if (!hasError && baseForActualCalc > 0 && currentFat > 0 && targetFat > 0 && (effectiveCreamFat > 0 || missingComponent.startsWith('water'))) {
+      let calcCreamFat = (missingComponent.startsWith('water') && effectiveCreamFat === 0) ? 43 : effectiveCreamFat;
+      const plannedWater = baseForActualCalc - (((baseForActualCalc * targetFat) / 100) / calcCreamFat) * 100;
+      
+      let actualTotal = 0, actualIngredient = 0, actualWater = 0;
+      if (['cream_less', 'cream_more', 'fat_less', 'fat_more'].includes(missingComponent)) {
+        actualWater = plannedWater;
+        actualTotal = actualWater / (1 - (currentFat / calcCreamFat));
+        actualIngredient = actualTotal - actualWater;
+      } else {
+        actualIngredient = (((baseForActualCalc * targetFat) / 100) / calcCreamFat) * 100;
+        actualTotal = ((actualIngredient * calcCreamFat) / 100) / (currentFat / 100);
+        actualWater = actualTotal - actualIngredient;
+      }
+      computedActualTotal = actualTotal;
+
+      const diffTotal = actualTotal - baseForActualCalc;
+      actualBatchLabelEl.innerText = isApplied ? 'Origineel geplande batchgrootte:' : 'Vermoedelijke werkelijke batchgrootte:';
+      actualBatchValueEl.innerText = Math.round(isApplied ? originalBatchSize : actualTotal) + ' kg';
+
+      detailsEl.innerHTML = `
+        <div class="calc-step">
+          <strong>Analyse op basis van gekozen oorzaak:</strong><br>
+          • <strong>Gepland water / ${ingredientName}:</strong> ${Math.round(plannedWater)} kg / ${Math.round(baseForActualCalc - plannedWater)} kg<br>
+          • <strong>Werkelijk water / ${ingredientName}:</strong> ${Math.round(actualWater)} kg / ${Math.round(actualIngredient)} kg<br>
+          • <strong>Verschil in totale massa:</strong> <span style="color:${Math.abs(diffTotal) < 0.5 ? '#27ae60' : '#c0392b'}; font-weight:bold;">${diffTotal > 0 ? '+' : ''}${Math.round(diffTotal)} kg</span><br>
+          <em>Uitleg:</em> Berekend via de droge stof / vetbalans om te achterhalen hoeveel ${ingredientName} of water er door een weeg- of doseerfout feitelijk te weinig/te veel in de mixtank is gekomen.
+        </div>`;
+    } else {
+      if (!isApplied) computedActualTotal = 0;
+      actualBatchLabelEl.innerText = isApplied ? 'Origineel geplande batchgrootte:' : 'Vermoedelijke werkelijke batchgrootte:';
+      actualBatchValueEl.innerText = (isApplied && originalBatchSize !== null) ? Math.round(originalBatchSize) + ' kg' : '0 kg';
+      detailsEl.innerHTML = '<p style="margin:0; font-style:italic; color:#666;">Vul vereiste velden in om de analyse te starten.</p>';
+    }
+
+    if (isApplied) {
+      applyButton.innerText = '↺ Herstel originele batchgrootte';
+      applyButton.style.background = '#dc3545'; applyButton.style.color = '#fff'; applyButton.style.borderColor = '#dc3545';
+    } else {
+      applyButton.innerText = '↺ Overnemen als geplande batch';
+      applyButton.style.background = ''; applyButton.style.color = ''; applyButton.style.borderColor = '';
+    }
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    loadSettings();
+    onCauseChange();
+    generateCodes();
+    const inputs = Array.from(document.querySelectorAll('#tool1 input:not([type="hidden"]), #tool1 select'));
+    inputs.forEach((input, index) => {
+      input.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === 'ArrowDown') {
+          e.preventDefault();
+          let next = inputs[index + 1];
+          if (next) { next.focus(); if (next.select) next.select(); }
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          let prev = inputs[index - 1];
+          if (prev) { prev.focus(); if (prev.select) prev.select(); }
+        }
+      });
+    });
+  });
+
+  let deferredPrompt;
+  const installBtn = document.getElementById('installBtn');
+  const iosInstruction = document.getElementById('iosInstruction');
+  const isIos = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
+  const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
+
+  if (isStandalone) {
+    installBtn.style.display = 'none';
+  }
+
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    deferredPrompt = e;
+  });
+
+  installBtn.addEventListener('click', async () => {
+    if (isIos) {
+      iosInstruction.style.display = iosInstruction.style.display === 'block' ? 'none' : 'block';
+    } else if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const choiceResult = await deferredPrompt.userChoice;
+      if (choiceResult.outcome === 'accepted') {
+        console.log('App geïnstalleerd');
+      }
+      deferredPrompt = null;
+    } else {
+      alert('Om deze app te installeren:\n\n- Open het menu van je browser (3 puntjes rechtsboven).\n- Kies voor "App installeren" of "Toevoegen aan startscherm".');
+    }
+  });
 </script>
 
 </body>
