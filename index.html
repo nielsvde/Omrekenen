@@ -47,13 +47,14 @@
     .settings-row:last-child { margin-bottom: 0; }
     .settings-row input { width: 80px !important; padding: 6px !important; font-size: 0.85rem !important; text-align: right; }
 
-    /* Hoofdnavigatie voor de tools */
-    .main-tabs { display: flex; gap: 6px; margin-bottom: 20px; }
+    /* Hoofdnavigatie voor de tools (Aangepast aan tab-buttons stijl) */
+    .main-tabs { display: flex; gap: 4px; margin-bottom: -1px; position: relative; z-index: 1; }
     .main-tab-btn {
-      flex: 1; padding: 10px 4px; border: 1px solid var(--border-blue); background: #e9ecef;
-      font-size: 0.78rem; font-weight: 600; color: #495057; cursor: pointer; border-radius: 8px; transition: all 0.2s;
+      flex: 1; padding: 10px 4px; border: 1px solid var(--border-blue); border-bottom: none;
+      background: #e1eeef; font-size: 0.8rem; font-weight: 600; color: #555; cursor: pointer; border-radius: 10px 10px 0 0; transition: all 0.2s;
     }
-    .main-tab-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+    .main-tab-btn.active { background: var(--card-blue-bg); color: var(--primary); font-weight: 700; }
+    
     .main-tool-content { display: none; text-align: left; }
     .main-tool-content.active { display: block; }
 
@@ -87,9 +88,16 @@
       background: #e1eeef; font-size: 0.85rem; font-weight: 600; color: #555; cursor: pointer; border-radius: 10px 10px 0 0;
     }
     .tab-btn.active { background: var(--card-blue-bg); color: var(--primary); font-weight: 700; }
+    
+    /* Gedeelde container stijl voor zowel de hoofdcontent onder de tabbladen als de subtabbladen */
     .tab-content-container {
-      background: var(--card-blue-bg); border: 1px solid var(--border-blue); border-radius: 0 0 12px 12px; padding: 16px 14px; text-align: left;
+      background: var(--card-blue-bg); border: 1px solid var(--border-blue); border-radius: 0 12px 12px 12px; padding: 16px 14px; text-align: left;
     }
+    /* Speciale override zodat de hoofdcontainer direct onder de main-tabs naadloos aansluit (of een subtiele afronding bovenin krijgt) */
+    .main-tool-content.tab-content-container {
+      border-radius: 0 12px 12px 12px;
+    }
+
     .tab-content { display: none; }
     .tab-content.active { display: block; }
 
@@ -206,15 +214,15 @@
     </div>
   </div>
   
-  <!-- Hoofdnavigatie voor de tools -->
+  <!-- Hoofdnavigatie voor de tools (Gestyled als tabbladen) -->
   <div class="main-tabs">
     <button class="main-tab-btn active" onclick="switchMainTool('tool1', this)">Product correctie</button>
     <button class="main-tab-btn" onclick="switchMainTool('tool2', this)">Evap / Lattiz</button>
     <button class="main-tab-btn" onclick="switchMainTool('tool3', this)">Code Generator</button>
   </div>
 
-  <!-- TOOL 1: PRODUCT CORRECTIE -->
-  <div id="tool1" class="main-tool-content active">
+  <!-- CONTAINER VOOR TOOL 1 -->
+  <div id="tool1" class="main-tool-content tab-content-container active">
     <div class="form-group">
       <div class="label-container">
         <label for="batchSize">Geplande batchgrootte (kg):</label>
@@ -257,7 +265,7 @@
         <button class="tab-btn" onclick="switchTab('tab-berekening', this)">Berekening</button>
       </div>
 
-      <div class="tab-content-container">
+      <div class="tab-content-container" style="border-top-left-radius: 0;">
         <!-- Tab 1 -->
         <div id="tab-resultat" class="tab-content active">
           <div id="errorSection"></div>
@@ -304,8 +312,8 @@
     </div>
   </div>
 
-  <!-- TOOL 2: EVAP / LATTIZ -->
-  <div id="tool2" class="main-tool-content">
+  <!-- CONTAINER VOOR TOOL 2: EVAP / LATTIZ -->
+  <div id="tool2" class="main-tool-content tab-content-container">
     <div class="form-group">
       <div class="label-container">
         <label for="lattizInput">Plak Excel gegevens (productie runs):</label>
@@ -315,7 +323,7 @@
       <div id="lattizTooltip" class="info-tooltip"><strong>Instructie:</strong> Kopieer je getallen uit Excel en plak ze direct hierin. Alle getallen worden automatisch opgeteld.</div>
     </div>
 
-    <div class="tab-content-container" style="border-radius: 12px; margin-top: 10px;">
+    <div class="tab-content-container" style="border-radius: 12px; margin-top: 10px; background: #ffffff;">
       <div class="section-title">Overzicht Lattiz Productie</div>
       
       <div class="result-row" style="margin-bottom: 10px;">
@@ -364,8 +372,8 @@
     </div>
   </div>
 
-  <!-- TOOL 3: CODE GENERATOR & SCANNER -->
-  <div id="tool3" class="main-tool-content">
+  <!-- CONTAINER VOOR TOOL 3: CODE GENERATOR & SCANNER -->
+  <div id="tool3" class="main-tool-content tab-content-container">
     <div class="code-type-selector">
       <button type="button" class="code-type-btn active" onclick="switchCodeType('barcode', this)">Streepjescode (128)</button>
       <button type="button" class="code-type-btn" onclick="switchCodeType('qr', this)">QR-code</button>
