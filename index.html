@@ -152,6 +152,8 @@
 
   <!-- JsBarcode library voor Code 128 streepjescodes -->
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+  <!-- Tesseract.js voor tekstherkenning (OCR) van cijferreeksen / ordernummers -->
+  <script src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js'></script>
 
   <script>
     if ('serviceWorker' in navigator) {
@@ -204,14 +206,14 @@
     </div>
   </div>
   
-  <!-- Hoofdnavigatie voor de tools (Product correctie staat weer standaard op actief) -->
+  <!-- Hoofdnavigatie voor de tools -->
   <div class="main-tabs">
     <button class="main-tab-btn active" onclick="switchMainTool('tool1', this)">Product correctie</button>
     <button class="main-tab-btn" onclick="switchMainTool('tool2', this)">Evap / Lattiz</button>
     <button class="main-tab-btn" onclick="switchMainTool('tool3', this)">Code Generator</button>
   </div>
 
-  <!-- TOOL 1: PRODUCT CORRECTIE - STANDAARD ACTIEF -->
+  <!-- TOOL 1: PRODUCT CORRECTIE -->
   <div id="tool1" class="main-tool-content active">
     <div class="form-group">
       <div class="label-container">
@@ -362,33 +364,30 @@
     </div>
   </div>
 
-  <!-- TOOL 3: CODE GENERATOR (STREEPJESCODE 128 / QR) -->
+  <!-- TOOL 3: CODE GENERATOR & SCANNER -->
   <div id="tool3" class="main-tool-content">
-    <!-- Keuzeknoppen voor Barcode (standaard actief) of QR -->
     <div class="code-type-selector">
       <button type="button" class="code-type-btn active" onclick="switchCodeType('barcode', this)">Streepjescode (128)</button>
       <button type="button" class="code-type-btn" onclick="switchCodeType('qr', this)">QR-code</button>
     </div>
 
-    <!-- Knop om met camera te scannen en te kopiëren -->
-    <button type="button" class="btn-scan" onclick="startScanner()">
-      📷 Scan bestaande code (kopiëren)
+    <!-- Knop om foto te maken van een ordernummer/cijferreeks -->
+    <button type="button" id="scanBtn" class="btn-scan" onclick="startCameraScan()">
+      📷 Scan ordernummer / cijfers via foto
     </button>
-    <input type="file" id="scanFileInput" accept="image/*" capture="environment" style="display:none;" onchange="handleScanFile(this)">
+    <input type="file" id="scanFileInput" accept="image/*" capture="environment" style="display:none;" onchange="handleOCRScan(this)">
 
-    <div class="form-group">
+    <div class="form-group" style="margin-top: 10px;">
       <label for="codeTextInput">Voer tekst of cijfercode in:</label>
       <input type="text" id="codeTextInput" placeholder="Typ of scan een code..." oninput="generateCodes()">
     </div>
 
     <!-- Grote weergave box -->
     <div class="code-display-box">
-      <!-- Streepjescode Sectie (standaard actief) -->
       <div id="barcodeSection" class="code-section active">
         <svg id="barcodeSvg" style="display:none;"></svg>
         <div id="barcodePlaceholder" class="code-placeholder">Geen invoer opgegeven</div>
       </div>
-      <!-- QR Sectie -->
       <div id="qrSection" class="code-section">
         <div id="qrContainer" class="code-placeholder">Geen invoer opgegeven</div>
       </div>
@@ -498,40 +497,42 @@
     }
   }
 
-  // Camera scan functionaliteit om een code te kopiëren
-  function startScanner() {
-    if ('BarcodeDetector' in window) {
-      const input = document.createElement('input');
-      input.type = 'file';
-      input.accept = 'image/*';
-      input.capture = 'environment';
-      input.onchange = async e => {
-        const file = e.target.files[0];
-        if (!file) return;
-        try {
-          const imageBitmap = await createImageBitmap(file);
-          const detector = new BarcodeDetector({ formats: ['code_128', 'qr_code', 'ean_13', 'data_matrix'] });
-          const codes = await detector.detect(imageBitmap);
-          if (codes.length > 0) {
-            document.getElementById('codeTextInput').value = codes[0].rawValue;
-            generateCodes();
-          } else {
-            alert('Geen geldige code gevonden in de foto.');
-          }
-        } catch (err) {
-          alert('Fout bij het scannen van de afbeelding.');
-        }
-      };
-      input.click();
-    } else {
-      document.getElementById('scanFileInput').click();
-    }
+  // Camera starten om foto te maken voor tekst/ordernummer herkenning
+  function startCameraScan() {
+    document.getElementById('scanFileInput').click();
   }
 
-  function handleScanFile(input) {
+  // Verwerk de foto via Tesseract OCR om cijfers/ordernummers te extraheren
+  async function handleOCRScan(input) {
     const file = input.files[0];
-    if (file) {
-      alert('Foto ontvangen! Zorg ervoor dat je browser BarcodeDetector ondersteunt (zoals Chrome op Android of Safari op iOS).');
+    if (!file) return;
+
+    const scanBtn = document.getElementById('scanBtn');
+    scanBtn.innerText = '⏳ Bezig met analyseren van foto...';
+    scanBtn.disabled = true;
+
+    try {
+      // Herken tekst uit de afbeelding (ondersteunt standaard Engels/cijfers uitstekend)
+      const { data: { text } } = await Tesseract.recognize(file, 'eng');
+      
+      // Zoek naar de eerste aaneengesloten reeks cijfers/letters of maak de tekst schoon
+      const cleanText = text.replace(/[\r\n]+/g, ' ').trim();
+      
+      if (cleanText.length > 0) {
+        // Probeer een logisch ordernummer of cijferreeks eruit te filteren (of pak de hele regel)
+        const match = cleanText.match(/[A-Za-z0-9\-_]{3,}/);
+        document.getElementById('codeTextInput').value = match ? match[0] : cleanText;
+        generateCodes();
+      } else {
+        alert('Geen leesbare tekst of cijfers gevonden op de foto. Probeer het opnieuw.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Er is een fout opgetreden bij het lezen van de foto.');
+    } finally {
+      scanBtn.innerText = '📷 Scan ordernummer / cijfers via foto';
+      scanBtn.disabled = false;
+      input.value = ''; // Reset file input zodat dezelfde foto eventueel opnieuw gekozen kan worden
     }
   }
 
