@@ -93,7 +93,7 @@
       text-align: center;
     }
     /* Actieve sub-tabblad wit gemaakt en de onderrand/scheidslijn weggelaten */
-    .tab-btn.active { background: #ffffff; color: var(--primary); font-weight: 700; border-bottom: 1px solid #ffffff; }
+    .tab-btn.active { background: #ffffff; color: var(--primary); font-weight: 700; border-bottom: 0px solid #ffffff; }
     
     /* Container voor resultaat/berekening ook wit gemaakt met doorlopende rand */
     .tab-content-container {
@@ -233,18 +233,18 @@
         <label for="batchSize">Geplande batchgrootte (kg):</label>
         <span class="info-icon" onclick="toggleTooltip('batchTooltip')">?</span>
       </div>
-      <input type="text" inputmode="decimal" id="batchSize" placeholder="bijv. 3517" oninput="formatInput(this); checkIfManuallyEdited(); calculate()">
+      <input type="text" inputmode="decimal" id="batchSize" placeholder="bijv. 6000" oninput="formatInput(this); checkIfManuallyEdited(); calculate()">
       <div id="batchTooltip" class="info-tooltip"><strong>Let op:</strong> De werkelijke batchgrootte kan afwijken als een grondstof onvolledig is gedoseerd in de mixtank!</div>
     </div>
 
     <div class="form-group">
       <label for="currentFat">Gemeten vetgehalte batch (%):</label>
-      <input type="text" inputmode="decimal" id="currentFat" placeholder="bijv. 27.42" oninput="formatInput(this); calculate()" onblur="formatDecimals(this, 2)">
+      <input type="text" inputmode="decimal" id="currentFat" placeholder="bijv. 29.75" oninput="formatInput(this); calculate()" onblur="formatDecimals(this, 2)">
     </div>
 
     <div class="form-group">
       <label for="targetFat">Gewenst vetgehalte (%):</label>
-      <input type="text" inputmode="decimal" id="targetFat" placeholder="bijv. 30.00" oninput="formatInput(this); calculate()" onblur="formatDecimals(this, 2)">
+      <input type="text" inputmode="decimal" id="targetFat" placeholder="bijv. 30.50" oninput="formatInput(this); calculate()" onblur="formatDecimals(this, 2)">
     </div>
 
     <div class="form-group">
@@ -261,7 +261,7 @@
 
     <div class="form-group" id="creamFatGroup">
       <label id="creamFatLabel" for="creamFat">Vetgehalte toe te voegen room (%):</label>
-      <input type="text" inputmode="decimal" id="creamFat" placeholder="bijv. 43.1" oninput="formatInput(this); calculate()" onblur="formatDecimals(this, 2)">
+      <input type="text" inputmode="decimal" id="creamFat" placeholder="bijv. 43.15" oninput="formatInput(this); calculate()" onblur="formatDecimals(this, 2)">
     </div>
 
     <div class="tabs-wrapper">
