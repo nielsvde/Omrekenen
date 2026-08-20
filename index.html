@@ -12,8 +12,8 @@
   <style>
     :root {
       --primary: #007bff; --primary-hover: #0056b3;
-      --bg: #212529; --card-bg: #ffffff; --text: #333333;
-      --card-blue-bg: #f0f7ff; --border-blue: #cce5ff;
+      --bg: #212529; --card-bg: #f8f9fa; --text: #333333;
+      --card-blue-bg: #e9ecef; --border-blue: #ced4da;
     }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -32,11 +32,11 @@
     .header-text-img { height: 38px; width: auto; object-fit: contain; }
     .header-buttons { display: flex; gap: 6px; }
     .btn-header-action {
-      background: #f1f3f5; border: 1px solid #ced4da; color: #495057; border-radius: 8px;
+      background: #e9ecef; border: 1px solid #ced4da; color: #495057; border-radius: 8px;
       padding: 6px 10px; font-size: 0.8rem; font-weight: 600; cursor: pointer; display: none; align-items: center; gap: 4px;
     }
     .btn-header-action.visible { display: flex; }
-    .btn-header-action:hover { background: #e9ecef; color: #212529; }
+    .btn-header-action:hover { background: #dee2e6; color: #212529; }
 
     /* Instellingen paneel */
     #settingsPanel {
@@ -69,7 +69,7 @@
       border: 1px solid #ffeeba; border-radius: 8px; font-size: 0.82rem; line-height: 1.4;
     }
     input, select, textarea {
-      width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 1rem; box-sizing: border-box; background: #fff; font-family: inherit;
+      width: 100%; padding: 12px; border: 1px solid #ced4da; border-radius: 8px; font-size: 1rem; box-sizing: border-box; background: #ffffff; font-family: inherit;
     }
     textarea { resize: vertical; min-height: 100px; }
 
@@ -84,11 +84,11 @@
     .tab-buttons { display: flex; gap: 4px; margin-bottom: -1px; position: relative; z-index: 1; }
     .tab-btn {
       flex: 1; padding: 10px 4px; border: 1px solid var(--border-blue); border-bottom: none;
-      background: #e1eeef; font-size: 0.85rem; font-weight: 600; color: #555; cursor: pointer; border-radius: 10px 10px 0 0;
+      background: #dee2e6; font-size: 0.85rem; font-weight: 600; color: #495057; cursor: pointer; border-radius: 10px 10px 0 0;
     }
-    .tab-btn.active { background: var(--card-blue-bg); color: var(--primary); font-weight: 700; }
+    .tab-btn.active { background: #ffffff; color: var(--primary); font-weight: 700; border-bottom: 1px solid #ffffff; }
     .tab-content-container {
-      background: var(--card-blue-bg); border: 1px solid var(--border-blue); border-radius: 0 0 12px 12px; padding: 16px 14px; text-align: left;
+      background: #ffffff; border: 1px solid var(--border-blue); border-radius: 0 0 12px 12px; padding: 16px 14px; text-align: left;
     }
     .tab-content { display: none; }
     .tab-content.active { display: block; }
@@ -97,7 +97,7 @@
     .result-row:last-child { margin-bottom: 0; }
     .result-value { font-weight: bold; white-space: nowrap; }
     .section-title { font-size: 0.88rem; font-weight: 700; color: var(--primary); margin: 0 0 10px; text-transform: uppercase; letter-spacing: 0.5px; }
-    .calc-step { margin-bottom: 12px; font-size: 0.85rem; line-height: 1.4; background: #ffffff; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0; }
+    .calc-step { margin-bottom: 12px; font-size: 0.85rem; line-height: 1.4; background: #f8f9fa; padding: 10px; border-radius: 6px; border: 1px solid #dee2e6; }
     .calc-step:last-child { margin-bottom: 0; }
     .error-box { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; padding: 12px; border-radius: 8px; font-size: 0.85rem; line-height: 1.4; margin-bottom: 14px; }
     
@@ -109,12 +109,12 @@
     
     .footer-actions { margin-top: 24px; display: flex; flex-direction: column; gap: 10px; align-items: center; }
     .feedback-link { display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem; color: #6c757d; text-decoration: none; padding: 6px 12px; border-radius: 6px; }
-    .feedback-link:hover { background: #e9ecef; color: var(--primary); }
+    .feedback-link:hover { background: #dee2e6; color: var(--primary); }
     
     .btn-install, .ios-box { width: 100%; padding: 12px; border-radius: 8px; box-sizing: border-box; display: block; }
     .btn-install { background: var(--primary); color: white; border: none; font-size: 0.95rem; font-weight: bold; cursor: pointer; }
     .btn-install:hover { background: var(--primary-hover); }
-    .ios-box { background: #e9ecef; color: #333; font-size: 0.85rem; text-align: center; line-height: 1.4; display: none; margin-top: 8px; }
+    .ios-box { background: #dee2e6; color: #333; font-size: 0.85rem; text-align: center; line-height: 1.4; display: none; margin-top: 8px; }
 
     /* Type selectie knoppen voor QR / Streepjescode */
     .code-type-selector { display: flex; gap: 6px; margin-bottom: 12px; }
@@ -295,7 +295,7 @@
           <div class="section-title">1. Analyse werkelijke batch inhoud</div>
           <div id="actualBatchDetails"><p style="margin:0; font-style:italic; color:#666;">Vul de gegevens in om de werkelijke batchberekening te zien.</p></div>
 
-          <hr style="border:0; border-top: 2px dashed #b6d4fe; margin: 18px 0;">
+          <hr style="border:0; border-top: 2px dashed var(--border-blue); margin: 18px 0;">
 
           <div class="section-title">2. Correctie berekening stappen</div>
           <div id="calcSteps"><p style="margin:0; font-style:italic; color:#666;">Vul de gegevens in om de berekening in stappen te zien.</p></div>
@@ -497,12 +497,10 @@
     }
   }
 
-  // Camera starten om foto te maken voor tekst/ordernummer herkenning
   function startCameraScan() {
     document.getElementById('scanFileInput').click();
   }
 
-  // Verwerk de foto via Tesseract OCR om cijfers/ordernummers te extraheren
   async function handleOCRScan(input) {
     const file = input.files[0];
     if (!file) return;
