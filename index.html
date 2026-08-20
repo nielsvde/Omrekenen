@@ -13,7 +13,7 @@
     :root {
       --primary: #007bff; --primary-hover: #0056b3;
       --bg: #f4f6f9; --card-bg: #ffffff; --text: #333333;
-      --card-blue-bg: #f0f7ff; --border-blue: #cce5ff;
+      --card-blue-bg: #ffffff; --border-blue: #cce5ff;
     }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -57,7 +57,7 @@
       background: #e1eeef; font-size: 0.78rem; font-weight: 600; color: #555; cursor: pointer; border-radius: 10px 10px 0 0; transition: all 0.2s;
       text-align: center;
     }
-    .main-tab-btn.active { background: var(--card-blue-bg); color: var(--primary); font-weight: 700; border-bottom: none; }
+    .main-tab-btn.active { background: var(--card-blue-bg); color: var(--primary); font-weight: 700; }
     
     .main-tool-content { display: none; text-align: left; }
     .main-tool-content.active { display: block; }
@@ -92,7 +92,7 @@
       background: #e1eeef; font-size: 0.85rem; font-weight: 600; color: #555; cursor: pointer; border-radius: 8px 8px 0 0;
       text-align: center;
     }
-    .tab-btn.active { background: var(--card-blue-bg); color: var(--primary); font-weight: 700; border-bottom: none; }
+    .tab-btn.active { background: var(--card-blue-bg); color: var(--primary); font-weight: 700; }
     
     .tab-content-container {
       background: var(--card-blue-bg); border: 1px solid var(--border-blue); border-radius: 0 0 12px 12px; padding: 20px 16px; text-align: left; box-sizing: border-box; width: 100%; margin-top: -1px; position: relative; z-index: 2;
@@ -130,7 +130,7 @@
       flex: 1; padding: 10px; border: 1px solid var(--border-blue); background: #e9ecef;
       font-size: 0.85rem; font-weight: 600; color: #495057; cursor: pointer; border-radius: 8px 8px 0 0; transition: all 0.2s;
     }
-    .code-type-btn.active { background: var(--card-blue-bg); color: var(--primary); border-color: var(--border-blue); border-bottom: none; }
+    .code-type-btn.active { background: var(--card-blue-bg); color: var(--primary); border-color: var(--border-blue); }
 
     /* Scan knop styling */
     .btn-scan {
@@ -222,7 +222,7 @@
   </div>
 
   <!-- CONTAINER VOOR TOOL 1 -->
-  <div id="tool1" class="main-tool-content tab-content-container active">
+  <div id="tool1" class="main-tool-content tab-content-container">
     <div class="form-group">
       <div class="label-container">
         <label for="batchSize">Geplande batchgrootte (kg):</label>
