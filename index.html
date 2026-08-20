@@ -117,12 +117,20 @@
     .ios-box { background: #e9ecef; color: #333; font-size: 0.85rem; text-align: center; line-height: 1.4; display: none; margin-top: 8px; }
 
     /* Type selectie knoppen voor QR / Streepjescode */
-    .code-type-selector { display: flex; gap: 6px; margin-bottom: 16px; }
+    .code-type-selector { display: flex; gap: 6px; margin-bottom: 12px; }
     .code-type-btn {
       flex: 1; padding: 10px; border: 1px solid var(--border-blue); background: #e9ecef;
       font-size: 0.85rem; font-weight: 600; color: #495057; cursor: pointer; border-radius: 8px; transition: all 0.2s;
     }
     .code-type-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+    /* Scan knop styling */
+    .btn-scan {
+      background: #28a745; color: white; border: none; border-radius: 8px;
+      padding: 10px; font-size: 0.9rem; font-weight: 600; cursor: pointer; width: 100%;
+      margin-bottom: 16px; display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .btn-scan:hover { background: #218838; }
 
     /* Grote weergave voor codes */
     .code-display-box {
@@ -196,14 +204,14 @@
     </div>
   </div>
   
-  <!-- Hoofdnavigatie voor de tools -->
+  <!-- Hoofdnavigatie voor de tools (Product correctie staat weer standaard op actief) -->
   <div class="main-tabs">
     <button class="main-tab-btn active" onclick="switchMainTool('tool1', this)">Product correctie</button>
     <button class="main-tab-btn" onclick="switchMainTool('tool2', this)">Evap / Lattiz</button>
     <button class="main-tab-btn" onclick="switchMainTool('tool3', this)">Code Generator</button>
   </div>
 
-  <!-- TOOL 1: PRODUCT CORRECTIE -->
+  <!-- TOOL 1: PRODUCT CORRECTIE - STANDAARD ACTIEF -->
   <div id="tool1" class="main-tool-content active">
     <div class="form-group">
       <div class="label-container">
@@ -354,35 +362,41 @@
     </div>
   </div>
 
-  <!-- TOOL 3: CODE GENERATOR (QR / STREEPJESCODE) -->
+  <!-- TOOL 3: CODE GENERATOR (STREEPJESCODE 128 / QR) -->
   <div id="tool3" class="main-tool-content">
-    <div class="form-group">
-      <label for="codeTextInput">Voer tekst of cijfercode in:</label>
-      <input type="text" id="codeTextInput" placeholder="Typ bijv. batchnummer of code..." oninput="generateCodes()">
+    <!-- Keuzeknoppen voor Barcode (standaard actief) of QR -->
+    <div class="code-type-selector">
+      <button type="button" class="code-type-btn active" onclick="switchCodeType('barcode', this)">Streepjescode (128)</button>
+      <button type="button" class="code-type-btn" onclick="switchCodeType('qr', this)">QR-code</button>
     </div>
 
-    <!-- Keuzeknoppen -->
-    <div class="code-type-selector">
-      <button type="button" class="code-type-btn active" onclick="switchCodeType('qr', this)">QR-code</button>
-      <button type="button" class="code-type-btn" onclick="switchCodeType('barcode', this)">Streepjescode (128)</button>
+    <!-- Knop om met camera te scannen en te kopiëren -->
+    <button type="button" class="btn-scan" onclick="startScanner()">
+      📷 Scan bestaande code (kopiëren)
+    </button>
+    <input type="file" id="scanFileInput" accept="image/*" capture="environment" style="display:none;" onchange="handleScanFile(this)">
+
+    <div class="form-group">
+      <label for="codeTextInput">Voer tekst of cijfercode in:</label>
+      <input type="text" id="codeTextInput" placeholder="Typ of scan een code..." oninput="generateCodes()">
     </div>
 
     <!-- Grote weergave box -->
     <div class="code-display-box">
-      <!-- QR Sectie -->
-      <div id="qrSection" class="code-section active">
-        <div id="qrContainer" class="code-placeholder">Geen invoer opgegeven</div>
-      </div>
-      <!-- Streepjescode Sectie -->
-      <div id="barcodeSection" class="code-section">
+      <!-- Streepjescode Sectie (standaard actief) -->
+      <div id="barcodeSection" class="code-section active">
         <svg id="barcodeSvg" style="display:none;"></svg>
         <div id="barcodePlaceholder" class="code-placeholder">Geen invoer opgegeven</div>
+      </div>
+      <!-- QR Sectie -->
+      <div id="qrSection" class="code-section">
+        <div id="qrContainer" class="code-placeholder">Geen invoer opgegeven</div>
       </div>
     </div>
   </div>
 
   <div class="footer-actions">
-    <a href="mailto:nielsvde@hotmail.com?subject=Feedback%20Correctie%20Calculator&body=Beste%20Niels,%0A%0AIk%20heb%20een%20vraag,%20tip%20of%20fout%20ontdekt%20in%20de%20Correctie%20Calculator:%0A%0A" class="feedback-link">
+    <a href="mailto:nielsvde@hotmail.com?subject=Feedback%20Correctie%20Calculator&body=Beste%2520Niels,%0A%0AIk%20heb%20een%20vraag,%20tip%20of%20fout%20ontdekt%20in%20de%20Correctie%20Calculator:%0A%0A" class="feedback-link">
       💡 Tip of fout melden
     </a>
     <button id="installBtn" class="btn-install">📲 Installeer app</button>
@@ -481,6 +495,43 @@
       document.getElementById('qrSection').classList.add('active');
     } else {
       document.getElementById('barcodeSection').classList.add('active');
+    }
+  }
+
+  // Camera scan functionaliteit om een code te kopiëren
+  function startScanner() {
+    if ('BarcodeDetector' in window) {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.capture = 'environment';
+      input.onchange = async e => {
+        const file = e.target.files[0];
+        if (!file) return;
+        try {
+          const imageBitmap = await createImageBitmap(file);
+          const detector = new BarcodeDetector({ formats: ['code_128', 'qr_code', 'ean_13', 'data_matrix'] });
+          const codes = await detector.detect(imageBitmap);
+          if (codes.length > 0) {
+            document.getElementById('codeTextInput').value = codes[0].rawValue;
+            generateCodes();
+          } else {
+            alert('Geen geldige code gevonden in de foto.');
+          }
+        } catch (err) {
+          alert('Fout bij het scannen van de afbeelding.');
+        }
+      };
+      input.click();
+    } else {
+      document.getElementById('scanFileInput').click();
+    }
+  }
+
+  function handleScanFile(input) {
+    const file = input.files[0];
+    if (file) {
+      alert('Foto ontvangen! Zorg ervoor dat je browser BarcodeDetector ondersteunt (zoals Chrome op Android of Safari op iOS).');
     }
   }
 
@@ -594,11 +645,9 @@
       barcodeSvg.style.display = 'none';
       barcodePlaceholder.style.display = 'block';
     } else {
-      // Grote QR code via externe API (240x240 voor extra scherpte)
       const encodedVal = encodeURIComponent(val);
       qrContainer.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodedVal}" alt="QR Code">`;
 
-      // Extra grote en goed scanbare streepjescode (Code 128) via JsBarcode
       try {
         barcodeSvg.style.display = 'block';
         barcodePlaceholder.style.display = 'none';
@@ -777,6 +826,7 @@
   window.addEventListener('DOMContentLoaded', () => {
     loadSettings();
     onCauseChange();
+    generateCodes();
     const inputs = Array.from(document.querySelectorAll('#tool1 input:not([type="hidden"]), #tool1 select'));
     inputs.forEach((input, index) => {
       input.addEventListener('keydown', e => {
