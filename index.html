@@ -4,9 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Product correctie calculator</title>
-  <link rel="manifest" href="manifest.json">
-  <link rel="icon" type="image/png" href="icon.png">
-  <link rel="apple-touch-icon" href="icon.png">
   <meta name="theme-color" content="#121212">
   
   <style>
@@ -15,106 +12,68 @@
       --bg: #121212; --card-bg: #1e1e1e; --text: #e0e0e0;
       --card-blue-bg: #252a35; --border-blue: #37474f;
     }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background-color: var(--bg); color: var(--text);
-      margin: 0; padding: 12px; display: flex; justify-content: center;
-    }
-    .card {
-      background: var(--card-bg); padding: 20px 16px; border-radius: 16px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3); width: 100%; max-width: 480px; box-sizing: border-box; text-align: center;
-    }
-    @media (min-width: 480px) { body { padding: 20px; } .card { padding: 24px; } }
-    
-    .header-container { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 20px; text-align: left; }
-    .header-branding { display: flex; align-items: center; gap: 12px; }
-    .header-logo { height: 48px; width: auto; object-fit: contain; flex-shrink: 0; filter: brightness(0.9); }
-    .header-text-img { height: 38px; width: auto; object-fit: contain; filter: invert(1) brightness(1.2); }
-    .header-buttons { display: flex; gap: 6px; }
-    .btn-header-action {
-      background: #333; border: 1px solid #444; color: #ccc; border-radius: 8px;
-      padding: 6px 10px; font-size: 0.8rem; font-weight: 600; cursor: pointer; display: none; align-items: center; gap: 4px;
-    }
-    .btn-header-action.visible { display: flex; }
-    .btn-header-action:hover { background: #444; color: #fff; }
-
-    #settingsPanel {
-      display: none; background: #3d351c; border: 1px solid #554a26; border-radius: 10px;
-      padding: 14px; margin-bottom: 20px; text-align: left; font-size: 0.85rem; color: #fdf6e3;
-    }
-    .settings-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; gap: 10px; }
-    .settings-row input { background: #222; border: 1px solid #555; color: white; width: 80px !important; padding: 6px !important; text-align: right; }
-
-    .main-tabs { display: flex; gap: 6px; margin-bottom: 20px; }
-    .main-tab-btn {
-      flex: 1; padding: 10px 4px; border: 1px solid #444; background: #2a2a2a;
-      font-size: 0.78rem; font-weight: 600; color: #aaa; cursor: pointer; border-radius: 8px; transition: all 0.2s;
-    }
-    .main-tab-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
-    .main-tool-content { display: none; text-align: left; }
-    .main-tool-content.active { display: block; }
-
-    .form-group { margin-bottom: 16px; text-align: left; }
-    .label-container { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
-    label { font-size: 0.9rem; font-weight: 600; }
-    .info-icon {
-      display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px;
-      background-color: var(--primary); color: white; border-radius: 50%; font-size: 0.75rem; font-weight: bold; cursor: pointer; flex-shrink: 0;
-    }
-    .info-tooltip {
-      display: none; margin-top: 6px; padding: 10px; background-color: #3d351c; color: #fdf6e3;
-      border: 1px solid #554a26; border-radius: 8px; font-size: 0.82rem; line-height: 1.4;
-    }
-    input, select, textarea {
-      width: 100%; padding: 12px; border: 1px solid #444; border-radius: 8px; font-size: 1rem; box-sizing: border-box; background: #2a2a2a; color: white; font-family: inherit;
-    }
-
-    .tabs-wrapper { margin-top: 24px; }
-    .tab-buttons { display: flex; gap: 4px; margin-bottom: -1px; position: relative; z-index: 1; }
-    .tab-btn {
-      flex: 1; padding: 10px 4px; border: 1px solid #444; border-bottom: none;
-      background: #222; font-size: 0.85rem; font-weight: 600; color: #888; cursor: pointer; border-radius: 10px 10px 0 0;
-    }
-    .tab-btn.active { background: var(--card-blue-bg); color: var(--primary); font-weight: 700; }
-    .tab-content-container {
-      background: var(--card-blue-bg); border: 1px solid #37474f; border-radius: 0 0 12px 12px; padding: 16px 14px; text-align: left;
-    }
-    
-    .result-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 10px; font-size: 0.92rem; }
-    .result-value { font-weight: bold; color: #fff; }
-    .section-title { font-size: 0.88rem; font-weight: 700; color: var(--primary); margin: 0 0 10px; text-transform: uppercase; }
-    .calc-step { margin-bottom: 12px; font-size: 0.85rem; line-height: 1.4; background: #1e1e1e; padding: 10px; border-radius: 6px; border: 1px solid #333; }
-    .error-box { background: #4a1919; color: #ffbaba; border: 1px solid #662222; padding: 12px; border-radius: 8px; margin-bottom: 14px; }
-    
-    .btn-apply-batch {
-      background: #252a35; border: 1px solid #37474f; color: var(--primary);
-      padding: 8px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer; width: 100%;
-    }
-    .btn-apply-batch:hover { background: var(--primary); color: #fff; }
-    
-    .btn-scan {
-      background: #1b5e20; color: white; border: none; border-radius: 8px;
-      padding: 12px; font-size: 0.9rem; font-weight: 600; cursor: pointer; width: 100%;
-      margin-bottom: 16px;
-    }
-    .code-display-box {
-      background: #fff; border-radius: 12px; padding: 24px; text-align: center;
-    }
-    .btn-install { background: var(--primary); color: white; border: none; padding: 12px; border-radius: 8px; width: 100%; font-weight: bold; cursor: pointer; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 12px; display: flex; justify-content: center; }
+    .card { background: var(--card-bg); padding: 20px 16px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); width: 100%; max-width: 480px; box-sizing: border-box; }
+    input, select, textarea { background: #2a2a2a; color: white; border: 1px solid #444; width: 100%; padding: 12px; border-radius: 8px; box-sizing: border-box; }
+    .main-tab-btn { flex: 1; padding: 10px; border: 1px solid #444; background: #2a2a2a; color: #aaa; cursor: pointer; border-radius: 8px; }
+    .main-tab-btn.active { background: var(--primary); color: white; }
+    .tab-content-container { background: var(--card-blue-bg); border: 1px solid #37474f; padding: 16px; border-radius: 0 0 12px 12px; }
+    .btn-scan { background: #1b5e20; color: white; border: none; padding: 12px; border-radius: 8px; width: 100%; font-weight: bold; cursor: pointer; }
+    .code-display-box { background: white; border-radius: 12px; padding: 20px; text-align: center; color: black; }
   </style>
-
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
   <script src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js'></script>
 </head>
 <body>
 
 <div class="card">
-  <!-- De rest van de HTML blijft gelijk aan je eerdere versie, de stijlen worden nu automatisch toegepast -->
-  <!-- ... (Code ingekort voor leesbaarheid, behoud je bestaande HTML structure hier) ... -->
+  <!-- Navigatie -->
+  <div style="display:flex; gap:6px; margin-bottom:20px;">
+    <button class="main-tab-btn active" onclick="showTool('tool1')">Correctie</button>
+    <button class="main-tab-btn" onclick="showTool('tool2')">Evap</button>
+    <button class="main-tab-btn" onclick="showTool('tool3')">Scan/Code</button>
+  </div>
+
+  <!-- TOOL 3 (Jouw vraag) -->
+  <div id="tool3" style="display:block;">
+    <button class="btn-scan" onclick="document.getElementById('scanFileInput').click()">📷 Scan cijfers/ordernummer</button>
+    <input type="file" id="scanFileInput" accept="image/*" capture="environment" style="display:none;" onchange="handleOCRScan(this)">
+    
+    <div style="margin-top:15px;">
+      <label>Code:</label>
+      <input type="text" id="codeTextInput" oninput="generateCodes()">
+    </div>
+    
+    <div class="code-display-box" style="margin-top:15px;">
+      <svg id="barcodeSvg"></svg>
+    </div>
+  </div>
 </div>
 
 <script>
-  // (Behoud hier al je bestaande JavaScript functies)
+  function showTool(id) {
+    document.getElementById('tool3').style.display = (id === 'tool3') ? 'block' : 'none';
+  }
+
+  async function handleOCRScan(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const btn = document.querySelector('.btn-scan');
+    btn.innerText = 'Bezig met lezen...';
+    
+    const { data: { text } } = await Tesseract.recognize(file, 'eng');
+    const match = text.match(/[A-Za-z0-9\-_]{3,}/);
+    if(match) {
+        document.getElementById('codeTextInput').value = match[0];
+        generateCodes();
+    }
+    btn.innerText = '📷 Scan cijfers/ordernummer';
+  }
+
+  function generateCodes() {
+    const val = document.getElementById('codeTextInput').value;
+    JsBarcode("#barcodeSvg", val, { format: "CODE128", displayValue: true });
+  }
 </script>
 
 </body>
