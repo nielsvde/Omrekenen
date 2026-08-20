@@ -407,6 +407,20 @@
         </div>
       </div>
     </div>
+
+    <!-- Extra datum- en Juliaanse dag weergave -->
+    <hr style="border:0; border-top: 1px solid var(--border-blue); margin: 16px 0;">
+
+    <div style="background: #ffffff; border: 1px solid var(--border-blue); border-radius: 12px; padding: 14px 16px;">
+      <div class="result-row" style="margin-bottom: 8px;">
+        <span>Juliaanse dag (dag van het jaar):</span>
+        <span id="julianDayValue" class="result-value" style="color: var(--primary);">0</span>
+      </div>
+      <div class="result-row">
+        <span>Datum vandaag + 25 dagen:</span>
+        <span id="futureDateValue" class="result-value" style="color: var(--primary);">-</span>
+      </div>
+    </div>
   </div>
 
   <div class="footer-actions">
@@ -543,6 +557,31 @@
       scanBtn.disabled = false;
       input.value = '';
     }
+  }
+
+  function updateDateInformation() {
+    const now = new Date();
+    
+    // 1. Juliaanse dag berekenen (dag van het jaar)
+    const startOfYear = new Date(now.getFullYear(), 0, 0);
+    const diff = now - startOfYear;
+    const oneDay = 1000 * 60 * 60 * 24;
+    const dayOfYear = Math.floor(diff / oneDay);
+    
+    document.getElementById('julianDayValue').innerText = dayOfYear;
+
+    // 2. Datum vandaag + 25 dagen berekenen
+    const futureDate = new Date();
+    futureDate.setDate(now.getDate() + 25);
+    
+    // Formatteren naar Nederlands formaat (bijv. 15-09-2026)
+    const formattedDate = futureDate.toLocaleDateString('nl-NL', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+    
+    document.getElementById('futureDateValue').innerText = formattedDate;
   }
 
   function onCauseChange() {
@@ -837,6 +876,8 @@
     loadSettings();
     onCauseChange();
     generateCodes();
+    updateDateInformation();
+
     const inputs = Array.from(document.querySelectorAll('#tool1 input:not([type="hidden"]), #tool1 select'));
     inputs.forEach((input, index) => {
       input.addEventListener('keydown', e => {
